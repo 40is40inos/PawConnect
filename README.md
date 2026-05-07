@@ -1,7 +1,5 @@
 # PawConnect: A Pet Services Marketplace
 
-![Application Preview](./assets/preview.jpg)
-
 A high-performance, full-stack web application architected to facilitate a multi-role marketplace for Pet Owners and Pet Keepers. The platform leverages a modern JavaScript stack to deliver a secure, scalable, and responsive experience.
 
 Developed as a flagship project by Sarantis Sarantinos for the Internet-Centric Computing (HY359) course.
@@ -125,3 +123,5 @@ cd frontend && npm install && npm start
 ## License
 
 This project was developed by Sarantis Sarantinos for academic purposes as part of the HY359 course. All rights reserved.
+
+![Application Preview](./assets/preview.jpg)
