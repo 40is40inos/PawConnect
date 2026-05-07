@@ -120,8 +120,8 @@ cd frontend && npm install && npm start
 
 ---
 
+![Application Preview](./assets/preview.jpg)
+
 ## License
 
 This project was developed by Sarantis Sarantinos for academic purposes as part of the HY359 course. All rights reserved.
-
-![Application Preview](./assets/preview.jpg)
