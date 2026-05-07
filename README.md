@@ -1,6 +1,8 @@
 # PawConnect: A Pet Services Marketplace
 
-A full-stack web application architected to facilitate a multi-role marketplace for Pet Owners and Pet Keepers. The platform leverages a modern JavaScript stack to deliver a secure, scalable, and responsive experience.
+![Application Preview](./assets/preview.jpg)
+
+A high-performance, full-stack web application architected to facilitate a multi-role marketplace for Pet Owners and Pet Keepers. The platform leverages a modern JavaScript stack to deliver a secure, scalable, and responsive experience.
 
 Developed as a flagship project by Sarantis Sarantinos and Kiriaki Dimopoulou for the Internet-Centric Computing (HY351) course.
 
@@ -72,6 +74,7 @@ To better reflect the platform's professional and connective nature, the followi
 
 ```text
 pet-services-marketplace/
+├── assets/             # Branding and preview images
 ├── backend/            # Express Server & API logic
 │   ├── controllers/    # Request handling and response formatting
 │   ├── models/         # Sequelize schemas and DB initialization
@@ -94,15 +97,22 @@ pet-services-marketplace/
 - Node.js (v16+)
 - MySQL Server
 
-### 2. Database Configuration
+### 2. Configuration
 1. Create a MySQL database (e.g., `pet_marketplace`).
-2. Configure connection parameters in `backend/utils/db_connection.js`.
-3. The server will automatically sync the schema on the first run via `initDB()`.
+2. Navigate to the `backend` directory.
+3. Copy `.env.example` to `.env` and update with your local credentials:
+   ```bash
+   cp .env.example .env
+   ```
+4. Install dependencies:
+   ```bash
+   npm install
+   ```
 
 ### 3. Execution
 **Backend:**
 ```bash
-cd backend && npm install && npm start
+cd backend && npm start
 ```
 
 **Frontend:**

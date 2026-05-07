@@ -1,0 +1,79 @@
+/* 
+    --bg-color: #2D3047;
+    --font-color: #FFDBB5;
+    --pink-color: #C04ABC;
+    --orange-color: #C04ABC;
+    --green-color: #419D78; 
+
+*/
+
+.loginBody{
+    background-color: var(--bg-color-20);
+    border: 1px solid var(--pink-color);
+    border-radius: 15px;
+    color: var(--font-color);
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    flex-direction: column;
+    height: auto;
+    min-width: 500px;
+    min-height: 300px;
+    width: auto;   
+    padding-top: 30px;
+}
+
+.loginTitle {
+    color: var(--orange-color);
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.loginForm {
+
+}
+
+.loginBody label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--pink-color);
+    font-size: 1.2rem;
+    margin: 5px;
+}
+
+.loginForm input {
+    background-color: var(--bg-color);
+    border: 1px solid var(--pink-color);
+    border-radius: 5px;
+    color: var(--font-color);
+    font-size: 1rem;
+    margin: 5px;
+    padding: 5px;
+    width: 200px;
+}
+
+.loginForm .submitButton {
+    background-color: var(--pink-color);
+    border: 1px solid var(--pink-color);
+    border-radius: 5px;
+    color: var(--font-color);
+    font-size: 1rem;
+    margin: 5px;
+    padding: 5px;
+    width: 100px;
+}
+
+
+.loginForm .submitButton:hover {
+    background-color: var(--bg-color);
+    border: 1px solid var(--pink-color);
+    color: var(--pink-color);
+    cursor: pointer;
+}
+
+.loginError {
+    color: var(--pink-color);
+    font-size: 1rem;
+    
+}

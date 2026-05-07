@@ -1,0 +1,34 @@
+.adminPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 10px;
+    padding-top: -20px;
+}
+
+.adminPage .buttons {
+    display:  flex;
+    justify-content: space-between;
+    width: 100%;
+    flex-direction: row;
+}
+
+.adminPage button{
+    background-color: var(--pink-color);
+    border: 1px solid var(--pink-color);
+    border-radius: 5px;
+    color: var(--font-color);
+
+    margin: 5px;
+    padding: 5px;
+    width: 100%;
+}
+
+.adminPage button:hover{
+    background-color: var(--bg-color);
+    border: 1px solid var(--pink-color);
+    color: var(--pink-color);
+    cursor: pointer;
+}

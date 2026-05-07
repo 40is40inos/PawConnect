@@ -1,0 +1,17 @@
+:root {
+  --bg-color: #2D3047;
+  --bg-color-20: color-mix(in srgb, #2D3047 , white 10%);
+  --font-color: #FFDBB5;
+  --pink-color: #C04ABC;
+  --orange-color: #E0A458;
+  --green-color: #419D78;
+}
+
+.App {
+  color: var(--font-color);
+  display: flex;
+  justify-content: center;
+  height: auto;
+  width: 100%;
+  padding: 100px 150px;
+}

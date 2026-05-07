@@ -1,0 +1,110 @@
+.mainPage{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.mainPageTitle{
+    font-size: 40px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.footer{
+
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    color: white;
+    text-align: center;
+
+    background-color: var(--green-color);
+    display: flex;
+    justify-content: center;
+    padding: 20px ;
+}
+
+.footer button{
+    background-color: var(--orange-color);
+    border: 1px solid var(--orange-color);
+    border-radius: 5px;
+    color: var(--bg-color);
+    font-size: 1rem;
+    margin: 5px;
+    padding: 5px;
+    width: 100px;
+}
+
+.footer button:hover{
+    background-color: var(--bg-color);
+    border: 1px solid var(--orange-color);
+    color: var(--orange-color);
+    cursor: pointer;
+}
+
+.mainPageForm input {
+    background-color: var(--bg-color);
+    border: 1px solid var(--pink-color);
+    border-radius: 5px;
+    color: var(--font-color);
+    font-size: 1rem;
+    margin: 5px;
+    padding: 5px;
+    width: 200px;
+}
+
+.mainPageForm label {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--pink-color);
+    font-size: 1.2rem;
+    margin: 5px;
+}
+
+
+.mainPageForm .submitButton {
+    background-color: var(--pink-color);
+    border: 1px solid var(--pink-color);
+    border-radius: 5px;
+    color: var(--font-color);
+    font-size: 1rem;
+    margin: 5px;
+    padding: 5px;
+    width: 100px;
+}
+
+.mainPageForm .submitButton:hover {
+    background-color: var(--bg-color);
+    border: 1px solid var(--pink-color);
+    color: var(--pink-color);
+    cursor: pointer;
+}
+
+.mainPageForm .buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-around;
+    align-items: center;
+    color: var(--pink-color);
+    font-size: 1.2rem;
+    margin: 5px;
+}
+
+.mainPageForm select {
+    background-color: var(--bg-color);
+    border: 1px solid var(--pink-color);
+    border-radius: 5px;
+    color: var(--font-color);
+    font-size: 1rem;
+    margin: 5px;
+    padding: 5px;
+    width: 200px;
+}
