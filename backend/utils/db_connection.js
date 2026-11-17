@@ -9,9 +9,14 @@ function createSequelize() {
   const url = process.env.DATABASE_URL;
 
   if (url) {
-    // Hosted databases (Neon, Aiven, ...) require TLS.
-    const ssl = process.env.DB_SSL === 'true' || /sslmode=(require|verify)/.test(url);
-    return new Sequelize(url, {
+    // Hosted databases (Neon, Aiven, ...) require TLS. TLS is configured below,
+    // so the libpq-style sslmode/channel_binding parameters are removed from
+    // the URL (the pg driver otherwise logs a warning about them).
+    const parsed = new URL(url);
+    const ssl = process.env.DB_SSL === 'true' || /^(require|verify-ca|verify-full)$/.test(parsed.searchParams.get('sslmode') || '');
+    parsed.searchParams.delete('sslmode');
+    parsed.searchParams.delete('channel_binding');
+    return new Sequelize(parsed.toString(), {
       ...common,
       dialectOptions: ssl ? { ssl: { require: true, rejectUnauthorized: true } } : {},
     });
