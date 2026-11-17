@@ -1,48 +1,54 @@
 import { useState } from 'react';
-import { tryLogin } from '../../api/login';
-import { useNavigate  } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+import { login } from '../../api/auth';
+import { errorMessage } from '../../api/client';
 
-import './login.css'
+import './login.css';
 
 export const Login = () => {
-    const navigate = useNavigate();
-    const [serverError , setServerError] = useState(null);
+  const navigate = useNavigate();
+  const [serverError, setServerError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-    const _onSubmit = (e) => {
-        e.preventDefault();
-        const {username, password} = e.target;
-        console.log(username.value , password.value);
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const { username, password } = e.target;
+    setSubmitting(true);
+    setServerError(null);
 
-        tryLogin(username.value , password.value)   // Call API's tryLogin
-            .then(_ => { navigate('/') }).catch(err =>{ console.log(err); setServerError(err.response.data)})
-    }
+    login(username.value, password.value)
+      .then((profile) => navigate(profile.role === 'ADMIN' ? '/admin' : '/'))
+      .catch((err) => setServerError(errorMessage(err)))
+      .finally(() => setSubmitting(false));
+  };
 
-    const _goToRegister = () => {
-        navigate('/register')
-    }
-
-    const _goToAdmin = () => {
-        navigate('/admin')
-    }
-
-    const _form = (
-        <form onSubmit={_onSubmit}>
-            <label>Username:
-                <input name="username"  type="text" required/>
-            </label>
-            <label>Password:
-                <input name="password"  type="password" required/>
-            </label>
-            <button className='submitButton' type="submit">Login</button>
-            <button className='submitButton' type="button" onClick={_goToRegister}>Register</button>
-            <button className='submitButton' type="button" onClick={()=>navigate('/guest')}>Guest</button>
+  return (
+    <div className="loginBody">
+      <div className="loginTitle">Login</div>
+      <div className="loginForm">
+        <form onSubmit={onSubmit}>
+          <label>
+            Username:
+            <input name="username" type="text" autoComplete="username" required />
+          </label>
+          <label>
+            Password:
+            <input name="password" type="password" autoComplete="current-password" required />
+          </label>
+          <button className="submitButton" type="submit" disabled={submitting}>
+            Login
+          </button>
+          <button className="submitButton" type="button" onClick={() => navigate('/register')}>
+            Register
+          </button>
+          <button className="submitButton" type="button" onClick={() => navigate('/guest')}>
+            Guest
+          </button>
         </form>
-    )
-
-    return (<div className="loginBody">    
-        <div className="loginTitle">Login</div>
-        <div className="loginForm"> {_form} </div>
-        <div className="loginError"> {serverError} </div>
-        
-    </div>)
-}
+      </div>
+      <div className="loginError" role="alert">
+        {serverError}
+      </div>
+    </div>
+  );
+};

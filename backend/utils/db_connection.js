@@ -1,20 +1,29 @@
-const Sequelize = require("sequelize");
+const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME || 'pet_marketplace',
-  process.env.DB_USER || 'root',
-  process.env.DB_PASS || '',
-  {
-    host: process.env.DB_HOST || 'localhost',
-    dialect: 'mysql',
-    logging: false
+// MySQL in development/production. SQLite (in memory by default) is used by the
+// test suite so it can run in CI without a database server.
+function createSequelize() {
+  if (process.env.DB_DIALECT === 'sqlite') {
+    return new Sequelize({
+      dialect: 'sqlite',
+      storage: process.env.DB_STORAGE || ':memory:',
+      logging: false,
+    });
   }
-);
 
-sequelize.authenticate().then(() => {
-   console.log('Connection has been established successfully.');
-}).catch((error) => {
-   console.error('Unable to connect to the database: ', error);
-});
+  return new Sequelize(
+    process.env.DB_NAME || 'pet_marketplace',
+    process.env.DB_USER || 'root',
+    process.env.DB_PASS || '',
+    {
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT) || 3306,
+      dialect: 'mysql',
+      logging: false,
+    }
+  );
+}
 
-module.exports = { sequelize }
+const sequelize = createSequelize();
+
+module.exports = { sequelize };

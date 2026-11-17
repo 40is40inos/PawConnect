@@ -1,18 +1,18 @@
-const {  DataTypes } = require("sequelize");
-const { sequelize } = require('../utils/db_connection')
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../utils/db_connection');
 
-const Admin = sequelize.define("admin", {
-    userName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-        primaryKey: true
-    },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false
-    }
-});
+// Admin accounts are created only from the command line
+// (npm run create-admin), never through the public API.
+const Admin = sequelize.define(
+  'admin',
+  {
+    userName: { type: DataTypes.STRING(30), primaryKey: true },
+    passwordHash: { type: DataTypes.STRING(60), allowNull: false },
+  },
+  {
+    defaultScope: { attributes: { exclude: ['passwordHash'] } },
+    scopes: { withPassword: {} },
+  }
+);
 
-// give table to service
-module.exports = { Admin }
+module.exports = { Admin };

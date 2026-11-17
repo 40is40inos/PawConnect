@@ -1,127 +1,112 @@
-# PawConnect: A Pet Services Marketplace
+# PawConnect
 
-A high-performance, full-stack web application architected to facilitate a multi-role marketplace for Pet Owners and Pet Keepers. The platform leverages a modern JavaScript stack to deliver a secure, scalable, and responsive experience.
+[![CI](https://github.com/40is40inos/PawConnect/actions/workflows/ci.yml/badge.svg)](https://github.com/40is40inos/PawConnect/actions/workflows/ci.yml)
 
-Developed as a flagship project by Sarantis Sarantinos for the Internet-Centric Computing (HY359) course.
+A web app where pet owners find pet keepers (sitters) and keepers find owners. It has three roles: pet owner, pet keeper and admin.
 
----
+It started as a team project for the Internet-Centric Computing course (HY359) at the University of Crete. I later reworked the backend: password hashing, server-side role checks, input validation and an automated test suite.
 
-## Technical Architecture
+![PawConnect screenshot](./assets/preview.jpg)
 
-The application follows a decoupled client-server architecture, ensuring a separation of concerns between the presentation layer and the business logic.
+## Features
 
-### Backend (RESTful API)
-- **Engine:** Node.js with the Express.js framework for efficient request routing and middleware integration.
-- **Data Persistence:** MySQL relational database managed via the **Sequelize ORM**, providing robust data mapping, validation, and schema synchronization.
-- **Security & Session Management:** 
-    - **CORS:** Configured for secure cross-origin resource sharing between the frontend (Port 3000) and backend (Port 5000).
-    - **Authentication:** Custom session management utilizing `cookie-parser` for persistent, client-side session state.
-    - **Validation:** Server-side checks for unique user identifiers (usernames, emails) during the registration lifecycle.
+- Register as a pet owner or a pet keeper, log in and out, and edit your profile.
+- Guests can browse pet keepers. Contact details (email, phone) are shown only to logged-in users. Addresses are never shown in listings.
+- Pet keepers can browse pet owners, and pet owners can browse pet keepers.
+- Admins can list and delete users. Admin accounts can only be created from the command line.
 
-### Frontend (Single Page Application)
-- **Framework:** React 18, utilizing functional components and hooks for optimized state management.
-- **Routing:** React Router 6 for declarative, client-side navigation.
-- **API Integration:** Axios-based service layer with interceptors for streamlined HTTP communication.
-- **State Persistence:** `react-cookie` for seamless synchronization with backend session tokens.
+## Tech stack
 
----
+| Part | Technology |
+|---|---|
+| Frontend | React 18, React Router 6, Axios |
+| Backend | Node.js, Express 5, Sequelize ORM |
+| Database | MySQL (SQLite in tests) |
+| Security | bcrypt, JWT in an httpOnly cookie, Zod validation, Helmet, express-rate-limit |
+| Testing and CI | Jest, Supertest, GitHub Actions |
 
-## Data Model (Sequelize Schema)
+## How authentication works
 
-The core domain model revolves around the `User` entity, characterized by the following attributes:
+- **Passwords** are hashed with bcrypt (cost 12) before they are stored. The hash is excluded from every query result by default.
+- **Sessions** use a signed JWT (HS256, 1 hour) in an `httpOnly`, `SameSite=Lax` cookie, marked `Secure` in production. It holds only the username and role, and browser JavaScript cannot read it.
+- **Authorization** is enforced on the server for every request (`requireAuth`, `requireRole`). Users can only edit their own profile: the username comes from the session, never from the URL.
+- **Input validation** uses strict Zod schemas, so unknown fields such as `type` or `passwordHash` are rejected. This prevents users from promoting themselves.
+- **Login** returns the same error for an unknown user and a wrong password, and takes the same time in both cases. Attempts are limited to 10 per IP every 15 minutes.
+- Changing the password requires the current password.
 
-- **Primary Keys:** `userName` (String, Unique), `email` (String, Unique).
-- **Role System:** `type` attribute utilizing SQL Enums: `PETKEEPER` | `PETOWNER`.
-- **Demographics:** `sex` (Enum: `F`, `M`, `O`), `birthdate`, `city`, `country`.
-- **Contact:** `phoneNumber`, `address`.
+## API
 
----
+All endpoints are under `/api`.
 
-## API Endpoints
+| Method | Path | Access | Description |
+|---|---|---|---|
+| POST | `/auth/register` | Public | Create an owner or keeper account and log in |
+| POST | `/auth/login` | Public, rate limited | Log in |
+| POST | `/auth/logout` | Public | Clear the session cookie |
+| GET | `/auth/me` | Logged in | Current profile |
+| GET | `/users/keepers` | Public | List keepers (contact details only when logged in) |
+| GET | `/users/owners` | Keeper, admin | List owners |
+| PATCH | `/users/me` | Owner, keeper | Update own profile |
+| GET | `/admin/users` | Admin | List all users |
+| DELETE | `/admin/users/:username` | Admin | Delete a user |
 
-### Authentication & Lifecycle
-- `POST /login`: Validates credentials and initializes session cookies.
-- `POST /register`: Persists new user entities after validation.
-- `POST /`: Heartbeat/Session check for auto-login capabilities.
+## Running locally
 
-### User Management
-- `GET /users/getPetOwners`: Retrieves all users with the `PETOWNER` role.
-- `GET /users/getPetKeepers`: Retrieves all users with the `PETKEEPER` role.
-- `POST /users/update/:username`: Updates profile metadata for a specific user.
+Requirements: Node.js 20+ and MySQL 8.
 
-### Administrative Actions
-- `GET /usersForAdmin/getAll`: Aggregated view of all platform users.
-- `DELETE /usersForAdmin/:username`: Administrative removal of user accounts.
+```bash
+# 1. Backend
+cd backend
+cp .env.example .env        # set DB_* and JWT_SECRET
+npm install
+npm start                   # http://localhost:5000, creates tables on first run
 
----
+# 2. Create an admin account (optional)
+ADMIN_USERNAME=admin_name ADMIN_PASSWORD='a-long-password' npm run create-admin
 
-## Suggested Rebranding Names
+# 3. Frontend, in a second terminal
+cd frontend
+npm install
+npm start                   # http://localhost:3000, proxies /api to the backend
+```
 
-To better reflect the platform's professional and connective nature, the following names are suggested:
+## Tests
 
-1.  **PawConnect** (Selected): Emphasizes the community and networking aspect.
-2.  **PetSitter Hub**: Direct and SEO-friendly.
-3.  **TailTales**: A warm, community-focused brand.
-4.  **CritterCare**: Simple, memorable, and alliterative.
-5.  **AnimaLink**: A modern, tech-centric approach to pet services.
-6.  **Fur-Ever Services**: Playful and service-oriented.
+```bash
+cd backend
+npm test
+```
 
----
+The 36 tests run against an in-memory SQLite database, so no MySQL server is needed. They cover:
+- password hashing, and that no password or hash ever leaves the API;
+- role checks on every protected route, including forged session cookies;
+- validation and mass-assignment attempts;
+- password changes, rate limiting and error responses.
 
-## Project Structure
+GitHub Actions runs the tests and a production build of the frontend on every push.
+
+## Project structure
 
 ```text
-pet-services-marketplace/
-├── assets/             # Branding and preview images
-├── backend/            # Express Server & API logic
-│   ├── controllers/    # Request handling and response formatting
-│   ├── models/         # Sequelize schemas and DB initialization
-│   ├── services/       # Core business logic and database queries
-│   ├── utils/          # Database connection configuration
-│   └── server.js       # Express application entry point
-└── frontend/           # React Single Page Application
-    ├── public/         # Static assets and index.html
-    └── src/
-        ├── api/        # Modularized API service calls
-        ├── components/ # Atomic UI components (CSS + JSX)
-        └── pages/      # Route-level view components
+backend/
+├── app.js              # Express app (no listen), used by server.js and the tests
+├── server.js           # Entry point
+├── controllers/        # HTTP layer: read the request, call a service, send JSON
+├── services/           # Business logic and database queries
+├── models/             # Sequelize models
+├── middleware/         # Session, role checks, validation, error handling
+├── routes/             # URL to controller mapping and access rules
+├── validation/         # Zod request schemas
+├── scripts/            # create-admin CLI
+└── tests/              # Jest + Supertest
+frontend/src/
+├── api/                # Axios client and API calls
+├── components/
+└── pages/              # login, register, main page, guest, admin
 ```
 
----
+## Not built yet
 
-## Installation & Setup
-
-### 1. Prerequisites
-- Node.js (v16+)
-- MySQL Server
-
-### 2. Configuration
-1. Create a MySQL database (e.g., `pet_marketplace`).
-2. Navigate to the `backend` directory.
-3. Copy `.env.example` to `.env` and update with your local credentials:
-   ```bash
-   cp .env.example .env
-   ```
-4. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-### 3. Execution
-**Backend:**
-```bash
-cd backend && npm start
-```
-
-**Frontend:**
-```bash
-cd frontend && npm install && npm start
-```
-
----
-
-![Application Preview](./assets/preview.jpg)
-
-## License
-
-This project was developed by Sarantis Sarantinos for academic purposes as part of the HY359 course. All rights reserved.
+- Pet profiles, booking requests between owners and keepers, and reviews.
+- Search and filtering by city.
+- Database migrations: tables are created with `sequelize.sync()`. If you ran an older version of this project, drop its tables first, because the schema changed.

@@ -1,72 +1,63 @@
-import React, { useState, useEffect } from 'react';
-import { deleteUser , getAllUser } from '../../api/usersForAdmin';
-import { DisplayUsers } from "../../components/displayUsers/displayUsers";
-import { useNavigate  } from "react-router-dom";
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getMe, logout } from '../../api/auth';
+import { deleteUser, getAllUsers } from '../../api/admin';
+import { errorMessage } from '../../api/client';
+import { DisplayUsers } from '../../components/displayUsers/displayUsers';
 
-import './admin.css'
+import './admin.css';
 
-
+// The server enforces admin access on every request; this check only decides
+// what to render.
 const Admin = () => {
-    const [users, setUsers] = useState([]);
-    const [showUsers, setShowUsers] = useState(false);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [admin, setAdmin] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [showUsers, setShowUsers] = useState(false);
+  const [error, setError] = useState(null);
 
-    // what if the admin presses the user card
-    const onUserClick = (user) => {
-        // delete the user
-        deleteUser(user.userName).then(() => {
-            // then get all the users again
-            getAllUser().then((res) => {
-                // give each user object a delete function
-                res.forEach((user) => {user.onClick = () => {onUserClick(user)}})
-                setUsers(res);
-            });
-        });
-    }
+  const loadUsers = useCallback(
+    () =>
+      getAllUsers()
+        .then(setUsers)
+        .catch((err) => setError(errorMessage(err))),
+    []
+  );
 
-    useEffect(() => {
-        getAllUser().then((res) => {
-            // give each user object a delete function
-            res.forEach((user) => {user.onClick = () => {onUserClick(user)}})
-            setUsers(res);
-        });
-    }, []);
+  useEffect(() => {
+    getMe()
+      .then((me) => {
+        if (me?.role !== 'ADMIN') return navigate('/login');
+        setAdmin(me);
+        return loadUsers();
+      })
+      .catch((err) => setError(errorMessage(err)));
+  }, [navigate, loadUsers]);
 
-    useEffect(() => {
-        if(users.length === 0) return;
-        console.log(users);
-    }, [users]);
+  const onDelete = (user) => {
+    if (!window.confirm(`Delete ${user.userName}? This cannot be undone.`)) return;
+    deleteUser(user.userName)
+      .then(loadUsers)
+      .catch((err) => setError(errorMessage(err)));
+  };
 
-    const showUserButton = (
-        <button
-            onClick={() => {
-                setShowUsers(old => !old);
-                
-            }}
-        >
-            {!showUsers ? 'show users' : 'close users'}
+  const onLogout = () => logout().finally(() => navigate('/login'));
+
+  if (!admin) return error ? <div className="loginError">{error}</div> : null;
+
+  return (
+    <div className="adminPage">
+      <h1>Admin Page</h1>
+      <div className="buttons">
+        <button onClick={onLogout}>Logout</button>
+        <button onClick={() => setShowUsers((old) => !old)}>
+          {showUsers ? 'Close users' : 'Show users'}
         </button>
-    );
-
-    const _logout = (e) => {
-        document.cookie = 'user'+'=; Max-Age=-99999999;';
-        navigate('/login')
-    }
-    const logoutButton = <button onClick={_logout}>logout</button>
-
-    return (
-        <div className="adminPage">
-            <h1>Admin Page</h1>
-            <div className='buttons'>
-                {logoutButton}
-                {showUserButton}
-            </div>
-           {showUsers && <>ON CLICK YOU DELETE A USER<DisplayUsers users={users} showType={true}/></>}
-        </div>
-    );
-    
+      </div>
+      {error && <div className="loginError">{error}</div>}
+      {showUsers && <DisplayUsers users={users} showType onDelete={onDelete} />}
+    </div>
+  );
 };
-
-
 
 export default Admin;

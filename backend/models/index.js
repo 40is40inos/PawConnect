@@ -1,25 +1,8 @@
-const { User } = require('./user')
-const { Admin } = require('./admin')
+const { sequelize } = require('../utils/db_connection');
+const { User, USER_TYPES, SEXES } = require('./user');
+const { Admin } = require('./admin');
 
-// This creates the table if it doesn't exist (and does nothing if it already exists)
-const initDB = () => {
-    Admin.sync()
-    User.sync()
-}
+// Creates missing tables; existing tables and rows are left untouched.
+const initDB = () => sequelize.sync();
 
-// this can only alter if the tables don't have records
-const syncDB = () => {
-    Admin.sync({alter : true})
-    User.sync({alter : true})
-}
-
-// this syncs by force , deleting all records
-const forceSyncDB = async () => {
-
-    await Admin.sync({ force: true })
-    await User.sync({ force: true });  
-    await User.create({userName: 'admin', password: 'admin'});
-
-}
-
-module.exports = { syncDB , forceSyncDB, initDB}
+module.exports = { sequelize, User, Admin, USER_TYPES, SEXES, initDB };
