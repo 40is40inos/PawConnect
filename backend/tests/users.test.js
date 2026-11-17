@@ -8,29 +8,6 @@ beforeAll(() => {
 beforeEach(resetDB);
 afterAll(() => sequelize.close());
 
-describe('GET /api/users/keepers', () => {
-  test('guests see keepers without contact details or address', async () => {
-    await loggedInAgent(app, { type: 'PETKEEPER' });
-
-    const res = await request(app).get('/api/users/keepers').expect(200);
-    expect(res.body).toHaveLength(1);
-    expect(res.body[0]).toHaveProperty('firstName');
-    for (const hidden of ['email', 'phoneNumber', 'address', 'birthdate', 'passwordHash']) {
-      expect(res.body[0]).not.toHaveProperty(hidden);
-    }
-  });
-
-  test('logged-in users also see email and phone, but not address', async () => {
-    await loggedInAgent(app, { type: 'PETKEEPER' });
-    const { agent } = await loggedInAgent(app, { type: 'PETOWNER' });
-
-    const res = await agent.get('/api/users/keepers').expect(200);
-    expect(res.body[0]).toHaveProperty('email');
-    expect(res.body[0]).toHaveProperty('phoneNumber');
-    expect(res.body[0]).not.toHaveProperty('address');
-  });
-});
-
 describe('GET /api/users/owners', () => {
   test('guests get 401', async () => {
     await request(app).get('/api/users/owners').expect(401);

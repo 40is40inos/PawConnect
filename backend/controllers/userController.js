@@ -1,9 +1,5 @@
 const userService = require('../services/userService');
 
-async function listKeepers(req, res) {
-  res.json(await userService.listByType('PETKEEPER', req.user));
-}
-
 async function listOwners(req, res) {
   res.json(await userService.listByType('PETOWNER', req.user));
 }
@@ -23,4 +19,4 @@ async function remove(req, res) {
   res.status(204).end();
 }
 
-module.exports = { listKeepers, listOwners, updateMe, listAll, remove };
+module.exports = { listOwners, updateMe, listAll, remove };

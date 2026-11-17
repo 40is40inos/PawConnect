@@ -113,6 +113,8 @@ async function createAdmin(userName, password) {
 }
 
 module.exports = {
+  PUBLIC_FIELDS,
+  MEMBER_FIELDS,
   register,
   authenticate,
   getProfile,

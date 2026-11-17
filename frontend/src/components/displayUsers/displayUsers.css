@@ -1,6 +1,7 @@
 .displayUsers{
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     
     gap: 10px;
     justify-content: center;
@@ -15,8 +16,8 @@
     padding: 10px;
     border: 1px solid #ccc;
     transition: all 0.3s ease-in-out;
-    width: 100%;
-    min-width: 200px;
+    flex: 1 1 220px;
+    max-width: 320px;
 }
 
 .user:hover {

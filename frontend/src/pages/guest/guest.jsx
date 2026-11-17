@@ -1,10 +1,6 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPetKeepers } from '../../api/users';
-import { errorMessage } from '../../api/client';
-import { DisplayLinks, DisplayUsers } from '../../components/displayUsers/displayUsers';
-
-import './guest.css';
+import { KeeperSearch } from '../../components/KeeperSearch';
+import '../../components/marketplace.css';
 
 const USEFUL_LINKS = [
   { link: 'https://www.petmd.com/', title: 'PetMD', text: 'Visit PetMD' },
@@ -14,37 +10,35 @@ const USEFUL_LINKS = [
 
 export const Guest = () => {
   const navigate = useNavigate();
-  const [petKeepers, setPetKeepers] = useState([]);
-  const [error, setError] = useState(null);
-  const [view, setView] = useState(null); // 'keepers' | 'links' | null
-
-  useEffect(() => {
-    getPetKeepers()
-      .then(setPetKeepers)
-      .catch((err) => setError(errorMessage(err)));
-  }, []);
-
-  const toggle = (name) => setView((current) => (current === name ? null : name));
 
   return (
-    <div className="guestPage">
-      <div className="buttons">
-        <button onClick={() => toggle('keepers')}>
-          {view === 'keepers' ? 'Close pet keepers' : 'Show pet keepers'}
-        </button>
-        <button onClick={() => navigate('/login')}>Login</button>
-        <button onClick={() => toggle('links')}>
-          {view === 'links' ? 'Close links' : 'Useful links'}
-        </button>
-      </div>
-      {error && <div className="loginError">{error}</div>}
-      {view === 'keepers' && (
-        <>
-          <p>Log in to see contact details.</p>
-          <DisplayUsers users={petKeepers} />
-        </>
-      )}
-      {view === 'links' && <DisplayLinks links={USEFUL_LINKS} />}
+    <div className="dashboard">
+      <header className="dashboardHeader">
+        <div>
+          <h1 className="dashboardTitle">PawConnect</h1>
+          <span className="cardMeta">Trusted pet keepers near you</span>
+        </div>
+        <div className="actions">
+          <button className="btn btn-secondary" onClick={() => navigate('/login')}>
+            Log in
+          </button>
+          <button className="btn" onClick={() => navigate('/register')}>
+            Sign up
+          </button>
+        </div>
+      </header>
+      <KeeperSearch />
+      <section className="panel">
+        <h2 className="panelTitle">Useful links</h2>
+        <div className="cardGrid">
+          {USEFUL_LINKS.map((l) => (
+            <a className="card linkCard" key={l.link} href={l.link} target="_blank" rel="noopener noreferrer">
+              <span className="cardTitle">{l.title}</span>
+              <span className="cardMeta">{l.text} ↗</span>
+            </a>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

@@ -1,162 +1,120 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMe, logout } from '../../api/auth';
-import { getPetKeepers, getPetOwners, updateMe } from '../../api/users';
+import { getPetOwners } from '../../api/users';
+import { getBookings, getKeeperProfile, getPets } from '../../api/market';
 import { errorMessage } from '../../api/client';
+import { KeeperSearch } from '../../components/KeeperSearch';
+import { PetsPanel } from '../../components/PetsPanel';
+import { BookingsPanel } from '../../components/BookingsPanel';
+import { KeeperProfileForm } from '../../components/KeeperProfileForm';
+import { ProfileForm } from '../../components/ProfileForm';
 import { DisplayUsers } from '../../components/displayUsers/displayUsers';
+import '../../components/marketplace.css';
 
-import './mainPage.css';
-
-const TYPE_LABELS = { PETKEEPER: 'pet keeper', PETOWNER: 'pet owner' };
-const PROFILE_FIELDS = ['firstName', 'lastName', 'birthdate', 'sex', 'country', 'city', 'address', 'phoneNumber'];
+const OWNER_TABS = [
+  ['find', 'Find a keeper'],
+  ['pets', 'My pets'],
+  ['bookings', 'Bookings'],
+  ['details', 'My details'],
+];
+const KEEPER_TABS = [
+  ['bookings', 'Requests'],
+  ['profile', 'Keeper profile'],
+  ['owners', 'Pet owners'],
+  ['details', 'My details'],
+];
 
 export const MainPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [showUpdate, setShowUpdate] = useState(false);
-  const [listing, setListing] = useState(null); // { title, users }
+  const [tab, setTab] = useState(null);
+  const [pets, setPets] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [keeperProfile, setKeeperProfile] = useState(undefined); // undefined = not loaded yet
+  const [owners, setOwners] = useState(null);
   const [error, setError] = useState(null);
-  const [notice, setNotice] = useState(null);
+
+  const isKeeper = user?.type === 'PETKEEPER';
+  const fail = (err) => setError(errorMessage(err));
+
+  const loadBookings = useCallback(() => getBookings().then(setBookings).catch(fail), []);
+  const loadPets = useCallback(() => getPets().then(setPets).catch(fail), []);
 
   useEffect(() => {
     getMe()
-      .then((me) => {
+      .then(async (me) => {
         if (!me) return navigate('/login');
         if (me.role === 'ADMIN') return navigate('/admin');
         setUser(me);
+        if (me.type === 'PETKEEPER') {
+          const profile = await getKeeperProfile();
+          setKeeperProfile(profile);
+          setTab(profile ? 'bookings' : 'profile');
+        } else {
+          setTab('find');
+          loadPets();
+        }
+        loadBookings();
       })
-      .catch((err) => setError(errorMessage(err)));
-  }, [navigate]);
+      .catch(fail);
+  }, [navigate, loadBookings, loadPets]);
 
-  const onLogout = () => logout().finally(() => navigate('/login'));
+  useEffect(() => {
+    if (tab === 'owners' && owners === null) getPetOwners().then(setOwners).catch(fail);
+  }, [tab, owners]);
 
-  const showListing = () => {
-    setShowUpdate(false);
-    setNotice(null);
-    const isKeeper = user.type === 'PETKEEPER';
-    (isKeeper ? getPetOwners() : getPetKeepers())
-      .then((users) => setListing({ title: isKeeper ? 'Pet owners' : 'Pet keepers', users }))
-      .catch((err) => setError(errorMessage(err)));
-  };
+  if (!user) return error ? <p className="error">{error}</p> : null;
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const changes = Object.fromEntries(PROFILE_FIELDS.map((f) => [f, form[f].value]));
-    // Only send password fields when the user wants to change the password.
-    if (form.newPassword.value) {
-      changes.password = form.newPassword.value;
-      changes.currentPassword = form.currentPassword.value;
-    }
-
-    setError(null);
-    updateMe(changes)
-      .then((updated) => {
-        setUser(updated);
-        setShowUpdate(false);
-        setNotice('Your details were saved.');
-      })
-      .catch((err) => setError(errorMessage(err)));
-  };
-
-  if (!user) return error ? <div className="loginError">{error}</div> : null;
-
-  const updateForm = (
-    <form onSubmit={onSubmit} className="mainPageForm">
-      Update your details:
-      <label>
-        First name:
-        <input name="firstName" type="text" defaultValue={user.firstName} required />
-      </label>
-      <label>
-        Last name:
-        <input name="lastName" type="text" defaultValue={user.lastName} required />
-      </label>
-      <label>
-        Birthdate:
-        <input name="birthdate" type="date" defaultValue={user.birthdate} required />
-      </label>
-      <label>
-        Sex:
-        <select name="sex" defaultValue={user.sex}>
-          <option value="F">Female</option>
-          <option value="M">Male</option>
-          <option value="O">Other</option>
-        </select>
-      </label>
-      <label>
-        Country:
-        <input name="country" type="text" defaultValue={user.country} required />
-      </label>
-      <label>
-        City:
-        <input name="city" type="text" defaultValue={user.city} required />
-      </label>
-      <label>
-        Address:
-        <input name="address" type="text" defaultValue={user.address} required />
-      </label>
-      <label>
-        Phone number:
-        <input
-          name="phoneNumber"
-          type="tel"
-          defaultValue={user.phoneNumber}
-          pattern="\+?[0-9]{7,15}"
-          required
-        />
-      </label>
-      <label>
-        New password (leave empty to keep):
-        <input name="newPassword" type="password" autoComplete="new-password" minLength={8} />
-      </label>
-      <label>
-        Current password (needed for a new password):
-        <input name="currentPassword" type="password" autoComplete="current-password" />
-      </label>
-
-      <div className="buttons">
-        <button className="submitButton" type="submit">
-          Save
-        </button>
-        <button className="submitButton" type="button" onClick={() => setShowUpdate(false)}>
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
+  const waiting = bookings.filter((b) => b.status === 'REQUESTED').length;
+  const tabs = isKeeper ? KEEPER_TABS : OWNER_TABS;
 
   return (
-    <div className="mainPage">
-      <div className="mainPageTitle">
-        Welcome {TYPE_LABELS[user.type]} {user.firstName} {user.lastName}
-      </div>
-      {error && <div className="loginError" role="alert">{error}</div>}
-      {notice && <div>{notice}</div>}
-      <div className="mainPageBody">
-        {showUpdate && updateForm}
-        {!showUpdate && listing && (
-          <div className="listing">
-            {listing.title}
-            <DisplayUsers users={listing.users} />
-          </div>
-        )}
-      </div>
-      <div className="footer">
-        <button onClick={onLogout}>Logout</button>
-        <button onClick={showListing}>
-          {user.type === 'PETKEEPER' ? 'Pet owners' : 'Pet keepers'}
+    <div className="dashboard">
+      <header className="dashboardHeader">
+        <div>
+          <h1 className="dashboardTitle">Hi {user.firstName}</h1>
+          <span className="cardMeta">{isKeeper ? 'Pet keeper' : 'Pet owner'} · {user.city}</span>
+        </div>
+        <button className="btn btn-secondary" onClick={() => logout().finally(() => navigate('/login'))}>
+          Log out
         </button>
-        <button
-          onClick={() => {
-            setShowUpdate((old) => !old);
-            setListing(null);
-            setNotice(null);
-          }}
-        >
-          Update details
-        </button>
-      </div>
+      </header>
+
+      <nav className="tabs" role="tablist">
+        {tabs.map(([key, label]) => (
+          <button
+            key={key}
+            className="tab"
+            role="tab"
+            aria-selected={tab === key}
+            onClick={() => {
+              setError(null);
+              setTab(key);
+              if (key === 'bookings') loadBookings();
+            }}
+          >
+            {label}
+            {key === 'bookings' && waiting > 0 && <span className="count">{waiting}</span>}
+          </button>
+        ))}
+      </nav>
+
+      {error && <p className="error" role="alert">{error}</p>}
+
+      {tab === 'find' && <KeeperSearch pets={pets} canBook onBooked={loadBookings} />}
+      {tab === 'pets' && <PetsPanel pets={pets} onChange={loadPets} />}
+      {tab === 'bookings' && <BookingsPanel bookings={bookings} role={user.type} onChange={loadBookings} />}
+      {tab === 'profile' && keeperProfile !== undefined && (
+        <KeeperProfileForm profile={keeperProfile} onSaved={setKeeperProfile} />
+      )}
+      {tab === 'owners' && (
+        <section className="panel">
+          <h2 className="panelTitle">Pet owners</h2>
+          {owners && <DisplayUsers users={owners} />}
+        </section>
+      )}
+      {tab === 'details' && <ProfileForm user={user} onSaved={setUser} />}
     </div>
   );
 };

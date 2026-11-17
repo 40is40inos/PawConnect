@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "create-admin": "node scripts/createAdmin.js",
-    "test": "jest"
+    "test": "jest",
+    "seed-demo": "node scripts/seedDemo.js"
   },
   "author": "Sarantis Sarantinos",
   "license": "UNLICENSED",

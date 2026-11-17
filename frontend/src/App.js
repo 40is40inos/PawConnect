@@ -5,6 +5,7 @@ import { Register } from './pages/register/register';
 import { MainPage } from './pages/mainPage/mainPage';
 import { Guest } from './pages/guest/guest';
 import Admin from './pages/admin/admin';
+import { KeeperPage } from './pages/keeper/keeperPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/guest" element={<Guest />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/keepers/:userName" element={<KeeperPage />} />
         </Routes>
       </div>
     </Router>

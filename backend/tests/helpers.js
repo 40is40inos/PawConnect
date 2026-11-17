@@ -43,4 +43,53 @@ async function adminAgent(app) {
   return agent;
 }
 
-module.exports = { createApp, request, resetDB, newUser, loggedInAgent, adminAgent };
+// YYYY-MM-DD, `offset` days from today (negative for the past).
+function day(offset) {
+  const { todayISO } = require('../utils/dates');
+  const d = new Date(`${todayISO()}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + offset);
+  return d.toISOString().slice(0, 10);
+}
+
+async function addPet(agent, overrides = {}) {
+  const res = await agent
+    .post('/api/pets')
+    .send({ name: 'Rex', species: 'DOG', breed: 'Labrador', ...overrides })
+    .expect(201);
+  return res.body;
+}
+
+async function setKeeperProfile(agent, overrides = {}) {
+  const res = await agent
+    .put('/api/keeper-profile')
+    .send({
+      bio: 'Experienced dog walker with a big garden.',
+      dailyRate: 25,
+      acceptedSpecies: ['DOG', 'CAT'],
+      ...overrides,
+    })
+    .expect(200);
+  return res.body;
+}
+
+// An owner with a pet and a keeper with a profile, both logged in.
+async function marketplace(app, { keeper: keeperOverrides = {}, profile = {} } = {}) {
+  const owner = await loggedInAgent(app, { type: 'PETOWNER' });
+  const keeper = await loggedInAgent(app, { type: 'PETKEEPER', city: 'Heraklion', ...keeperOverrides });
+  await setKeeperProfile(keeper.agent, profile);
+  const pet = await addPet(owner.agent);
+  return { owner, keeper, pet };
+}
+
+module.exports = {
+  createApp,
+  request,
+  resetDB,
+  newUser,
+  loggedInAgent,
+  adminAgent,
+  day,
+  addPet,
+  setKeeperProfile,
+  marketplace,
+};

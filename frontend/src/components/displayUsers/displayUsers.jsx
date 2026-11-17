@@ -54,17 +54,3 @@ export const DisplayUsers = ({ users, showType = false, onDelete }) => {
     </div>
   );
 };
-
-// links = [{ link, title, text }]
-export const DisplayLinks = ({ links }) => (
-  <div className="displayUsers">
-    {links.map((link) => (
-      <div className="user" key={link.link}>
-        <div className="userName">{link.title}</div>
-        <a className="linkButton" href={link.link} target="_blank" rel="noopener noreferrer">
-          {link.text}
-        </a>
-      </div>
-    ))}
-  </div>
-);
