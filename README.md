@@ -6,7 +6,7 @@
 
 A marketplace where pet owners find pet keepers (sitters) and book stays for their pets. Keepers set their price and the animals they look after. Owners search, send booking requests and review keepers after a stay.
 
-It started as a team project for the Internet-Centric Computing course (HY359) at the University of Crete. I later rebuilt the backend security and added the marketplace features: pets, keeper profiles, search, bookings and reviews, all with automated tests.
+It started as a two-person project with Kiriaki Dimopoulou for the Internet-Centric Computing course (HY359) at the University of Crete. I later rebuilt the backend security and added the marketplace features (pets, keeper profiles, search, bookings and reviews), automated tests, Docker and the deployment.
 
 ![Owner searching for a keeper](docs/screenshots/find-a-keeper.png)
 
@@ -180,7 +180,7 @@ cd e2e && npm install && npx playwright install chromium && npm test     # 14 br
 The public demo runs on [Render](https://render.com) (free plan, Docker), with a [Neon](https://neon.tech) Postgres database. `render.yaml` describes the service:
 - Render builds the same `Dockerfile` as Docker Compose.
 - It checks `/api/health`, which also pings the database.
-- It deploys a new commit only after CI passes.
+- It is set to deploy a new commit after CI passes (`autoDeployTrigger: checksPass`). Until Render's GitHub connection is set up for the repo, deploys are started with **Manual Deploy** in the Render dashboard.
 - The free instance sleeps when idle. Each time it wakes, the demo resets to fresh demo data with current dates.
 
 The production image serves the React build and the API from one origin. The session cookie therefore stays first-party, `Secure` and `SameSite=Lax`, with no cross-site CORS setup.
