@@ -12,10 +12,16 @@ const secret = () => {
   return process.env.JWT_SECRET;
 };
 
+// True when the site is served over HTTPS. Defaults to production, and can be
+// turned off (COOKIE_SECURE=false) for a production build on plain
+// http://localhost, such as the Docker Compose setup.
+const usesHttps = () =>
+  process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production';
+
 const cookieOptions = () => ({
   httpOnly: true,
   sameSite: 'lax', // not sent on cross-site POST/DELETE requests (CSRF protection)
-  secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+  secure: usesHttps(), // only sent over HTTPS
   path: '/',
 });
 
@@ -59,4 +65,12 @@ const requireRole = (...roles) => [
   },
 ];
 
-module.exports = { startSession, endSession, loadSession, requireAuth, requireRole, COOKIE_NAME };
+module.exports = {
+  startSession,
+  endSession,
+  loadSession,
+  requireAuth,
+  requireRole,
+  usesHttps,
+  COOKIE_NAME,
+};

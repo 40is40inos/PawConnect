@@ -1,0 +1,12 @@
+{
+  "name": "pawconnect-e2e",
+  "private": true,
+  "description": "Browser tests for PawConnect (Playwright)",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
+  }
+}

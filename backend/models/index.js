@@ -25,9 +25,6 @@ Review.belongsTo(Booking, { foreignKey: 'bookingId', as: 'booking', ...cascade }
 Review.belongsTo(User, { foreignKey: 'ownerUserName', as: 'owner', ...cascade });
 Review.belongsTo(User, { foreignKey: 'keeperUserName', as: 'keeper', ...cascade });
 
-// Creates missing tables; existing tables and rows are left untouched.
-const initDB = () => sequelize.sync();
-
 module.exports = {
   sequelize,
   User,
@@ -40,5 +37,4 @@ module.exports = {
   SEXES,
   SPECIES,
   BOOKING_STATUSES,
-  initDB,
 };

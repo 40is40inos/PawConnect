@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/40is40inos/PawConnect/actions/workflows/ci.yml/badge.svg)](https://github.com/40is40inos/PawConnect/actions/workflows/ci.yml)
 
+<!-- LIVE_DEMO -->
+
 A marketplace where pet owners find pet keepers (sitters) and book stays for their pets. Keepers set their price and the animals they look after. Owners search, send booking requests and review keepers after a stay.
 
 It started as a team project for the Internet-Centric Computing course (HY359) at the University of Crete. I later rebuilt the backend security and added the marketplace features: pets, keeper profiles, search, bookings and reviews, all with automated tests.
@@ -48,9 +50,10 @@ These rules are enforced on the server and covered by the tests:
 |---|---|
 | Frontend | React 18, React Router 6, Axios |
 | Backend | Node.js, Express 5, Sequelize ORM |
-| Database | MySQL (SQLite in tests) |
+| Database | MySQL or Postgres, with versioned migrations (Umzug); SQLite for quick runs |
 | Security | bcrypt, JWT in an httpOnly cookie, Zod validation, Helmet, express-rate-limit |
-| Testing and CI | Jest, Supertest, Playwright (manual end-to-end run), GitHub Actions |
+| Testing and CI | Jest + Supertest (on SQLite, MySQL and Postgres), Playwright browser tests, GitHub Actions |
+| Deployment | Docker (multi-stage image), Docker Compose, Render + Neon |
 
 ## How authentication works
 
@@ -87,15 +90,27 @@ All endpoints are under `/api`.
 
 ## Running locally
 
-Requirements: Node.js 20+ and MySQL 8.
+### With Docker (recommended)
+
+Requires Docker Desktop. This one command starts MySQL and the app with demo data:
+
+```bash
+docker compose up --build
+```
+
+Then open http://localhost:5000. Stop with `Ctrl+C`; `docker compose down -v` also deletes the data.
+
+### Without Docker
+
+Requires Node.js 20+ and MySQL 8 or Postgres. You can also use SQLite: see `backend/.env.example`.
 
 ```bash
 # 1. Backend
 cd backend
-cp .env.example .env        # set DB_* and JWT_SECRET
+cp .env.example .env        # choose a database, set JWT_SECRET
 npm install
-npm run seed-demo           # optional: demo keepers, owners, pets, bookings, reviews
-npm start                   # http://localhost:5000, creates tables on first run
+npm run seed-demo           # optional: applies migrations and adds demo data
+npm start                   # http://localhost:5000, applies pending migrations on start
 
 # 2. Frontend, in a second terminal
 cd frontend
@@ -103,63 +118,102 @@ npm install
 npm start                   # http://localhost:3000, proxies /api to the backend
 ```
 
-The demo accounts all use the password `demo-password`:
+If the frontend fails with `options.allowedHosts[0] should be a non-empty string`, a known Create React App bug, start it with `DANGEROUSLY_DISABLE_HOST_CHECK=true npm start`.
+
+### Demo accounts
+
+All demo accounts use the password `demo-password`:
 - owners: `maria_o`, `kostas_d`
 - keepers: `eleni_k`, `giorgos_p`, `anna_m`, `nikos_t`
-- admin: `demo_admin`
+- admin: `demo_admin` (local Docker and test runs only; the public demo has no admin)
 
-To create a real admin account instead:
+To create a real admin account:
 
 ```bash
 ADMIN_USERNAME=admin_name ADMIN_PASSWORD='a-long-password' npm run create-admin
 ```
 
-To try it without MySQL, set `DB_DIALECT=sqlite` and `DB_STORAGE=./dev.sqlite` in `backend/.env`. If the frontend fails with `options.allowedHosts[0] should be a non-empty string`, a known Create React App bug, start it with `DANGEROUSLY_DISABLE_HOST_CHECK=true npm start`.
+## Database migrations
+
+The schema is defined by versioned migration files in `backend/db/migrations/`, run with [Umzug](https://github.com/sequelize/umzug). Applied migrations are recorded in the `SequelizeMeta` table, so each one runs once per database. The server applies pending migrations when it starts.
+
+```bash
+npm run migrate          # apply pending migrations
+npm run migrate:undo     # undo the last one
+npm run migrate:status   # list applied and pending
+```
+
+To change the schema, add a new file such as `20270101-0002-add-pet-photos.js` with `up` and `down` functions. Never edit a migration that has already run. A test fails if the migrated tables and the Sequelize models ever disagree.
 
 ## Tests
 
 ```bash
-cd backend
-npm test
+cd backend && npm test                  # 79 API tests on in-memory SQLite
+TEST_DATABASE_URL=postgres://user:pass@localhost:5432/pawtest npm test   # same tests on a real server
+
+cd frontend && npm run build            # the browser tests use the production build
+cd e2e && npm install && npx playwright install chromium && npm test     # 14 browser tests
 ```
 
-The 68 tests run against an in-memory SQLite database, so no MySQL server is needed. They cover:
-- authentication, role checks and forged cookies;
-- validation and mass-assignment attempts;
-- pet ownership, keeper search filters and ratings;
-- the full booking life cycle: pricing, overlaps, every allowed and forbidden status change;
-- reviews, soft-deleted pets, and cascade on user deletion.
+**API tests (Jest + Supertest).** They cover:
+- authentication, role checks, forged cookies and mass-assignment attempts;
+- every booking rule and status change;
+- search, reviews and cascading deletes;
+- migrations (columns match the models, undo and redo work);
+- production settings such as static files, caching and HTTPS cookies.
 
-GitHub Actions runs the tests and a production build of the frontend on every push.
+**Browser tests (Playwright).** They click through the real UI:
+- a guest searches and opens keeper pages;
+- an owner books, withdraws, manages pets and reviews a keeper;
+- a keeper accepts and declines requests;
+- a brand-new user goes from registration to an accepted booking;
+- an admin deletes an account;
+- pages fit a phone screen without sideways scrolling.
+
+**CI (GitHub Actions)**, on every push and pull request:
+1. API tests on SQLite, MySQL 8.4 and Postgres 16.
+2. A production build of the frontend that fails on lint warnings.
+3. The Docker Compose stack (the production image plus MySQL), with the browser tests run against it.
+
+## Deployment
+
+The public demo runs on [Render](https://render.com) (free plan, Docker), with a [Neon](https://neon.tech) Postgres database. `render.yaml` describes the service:
+- Render builds the same `Dockerfile` as Docker Compose.
+- It checks `/api/health`, which also pings the database.
+- It deploys a new commit only after CI passes.
+- The free instance sleeps when idle. Each time it wakes, the demo resets to fresh demo data with current dates.
+
+The production image serves the React build and the API from one origin. The session cookie therefore stays first-party, `Secure` and `SameSite=Lax`, with no cross-site CORS setup.
 
 ## Project structure
 
 ```text
 backend/
 ├── app.js              # Express app (no listen), used by server.js and the tests
-├── server.js           # Entry point
+├── server.js           # Entry point: migrate, then listen
 ├── routes/             # URL → controller, with the access rule for each route
 ├── controllers/        # HTTP layer: read the request, call a service, send JSON
 ├── services/           # Business rules and database queries
-│   ├── userService.js      accounts and login
-│   ├── petService.js       pets
-│   ├── keeperService.js    keeper profiles, search, ratings
-│   └── bookingService.js   booking life cycle and reviews
 ├── models/             # Sequelize models and relationships
+├── db/migrations/      # Versioned schema migrations
 ├── middleware/         # Session, role checks, validation, error handling
 ├── validation/         # Zod request schemas
-├── scripts/            # create-admin, seed-demo
+├── scripts/            # migrate, create-admin, seed-demo
 └── tests/              # Jest + Supertest
 frontend/src/
 ├── api/                # Axios client and API calls
 ├── components/         # Keeper search, booking form, pets, bookings, profiles
 ├── pages/              # login, register, dashboard, guest, keeper page, admin
 └── utils/              # Labels, date and price formatting
+e2e/                    # Playwright browser tests
+Dockerfile              # Multi-stage build: React app + API in one image
+docker-compose.yml      # App + MySQL with demo data
+render.yaml             # Render deployment
 ```
 
 ## Not built yet
 
 - Messaging between owners and keepers inside the app.
 - Payments: prices are shown but not charged.
+- Email notifications, email verification and password reset.
 - Keeper availability calendars and multi-pet bookings.
-- Database migrations: tables are created with `sequelize.sync()`. If you ran an older version of this project, drop its tables first.

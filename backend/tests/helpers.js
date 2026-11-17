@@ -1,9 +1,24 @@
 const request = require('supertest');
 const { createApp } = require('../app');
-const { sequelize } = require('../models');
+const { User, Admin, Pet, KeeperProfile, Booking, Review } = require('../models');
+const { migrator } = require('../db/migrator');
 const userService = require('../services/userService');
 
-const resetDB = () => sequelize.sync({ force: true });
+// The first call in a test file rebuilds the schema from the migrations
+// (so the tests always run against the migrated schema). Later calls only
+// delete rows, children first, which is much faster on MySQL/Postgres.
+let schemaReady = false;
+async function resetDB() {
+  if (!schemaReady) {
+    await migrator.down({ to: 0 });
+    await migrator.up();
+    schemaReady = true;
+    return;
+  }
+  for (const model of [Review, Booking, Pet, KeeperProfile, User, Admin]) {
+    await model.destroy({ where: {}, force: true });
+  }
+}
 
 let counter = 0;
 function newUser(overrides = {}) {

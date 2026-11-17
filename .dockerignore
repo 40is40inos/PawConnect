@@ -1,0 +1,11 @@
+**/node_modules
+**/.env
+**/*.sqlite
+**/coverage
+frontend/build
+backend/tests
+e2e
+docs
+.git
+.github
+*.md

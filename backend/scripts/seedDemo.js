@@ -1,11 +1,18 @@
 // Fills an EMPTY database with demo keepers, owners, pets, bookings and reviews,
 // so the app can be tried without creating accounts by hand.
 // Every demo account uses the password "demo-password".
-// Usage: npm run seed-demo
+//
+//   npm run seed-demo                          empty database only
+//   node scripts/seedDemo.js --if-empty        skip quietly if there is data (Docker)
+//   node scripts/seedDemo.js --reset-everything  DELETE ALL DATA, then seed (public demo)
+//
+// A demo admin is created only when DEMO_ADMIN_PASSWORD is set, so a public
+// demo never has an admin with a published password.
 require('dotenv').config();
 
 const bcrypt = require('bcryptjs');
-const { initDB, sequelize, User, Admin, KeeperProfile, Pet, Booking, Review } = require('../models');
+const { migrate, migrator } = require('../db/migrator');
+const { sequelize, User, Admin, KeeperProfile, Pet, Booking, Review } = require('../models');
 const { todayISO } = require('../utils/dates');
 
 const PASSWORD = 'demo-password';
@@ -48,8 +55,14 @@ const OWNERS = [
 ];
 
 async function main() {
-  await initDB();
+  if (process.argv.includes('--reset-everything')) {
+    console.log('Resetting the database to fresh demo data.');
+    await migrator.down({ to: 0 });
+  }
+  await migrate();
   if ((await User.count()) > 0) {
+    // --if-empty (used by Docker on every start) makes this a quiet no-op.
+    if (process.argv.includes('--if-empty')) return console.log('Database already has data; skipping demo seed.');
     throw new Error('The database already has users. Seed only an empty database.');
   }
 
@@ -62,7 +75,10 @@ async function main() {
       await KeeperProfile.create({ ...profile, userName: keeper.userName }, opts);
     }
     for (const owner of OWNERS) await User.create({ ...owner, passwordHash }, opts);
-    await Admin.findOrCreate({ where: { userName: 'demo_admin' }, defaults: { passwordHash }, ...opts });
+    if (process.env.DEMO_ADMIN_PASSWORD) {
+      const adminHash = await bcrypt.hash(process.env.DEMO_ADMIN_PASSWORD, Number(process.env.BCRYPT_ROUNDS) || 12);
+      await Admin.create({ userName: 'demo_admin', passwordHash: adminHash }, opts);
+    }
 
     const rex = await Pet.create({ ownerUserName: 'maria_o', name: 'Rex', species: 'DOG', breed: 'Labrador', birthYear: 2019, weightKg: 31, careNotes: 'Two walks a day. Dry food morning and evening, no chicken (allergy).' }, opts);
     const luna = await Pet.create({ ownerUserName: 'maria_o', name: 'Luna', species: 'CAT', breed: 'Tabby', birthYear: 2021, weightKg: 4.2, careNotes: 'Hides under the bed for the first day. Wet food twice a day.' }, opts);
@@ -89,7 +105,7 @@ async function main() {
   console.log('Demo data created. Log in with any of these (password "demo-password"):');
   console.log('  owners:  maria_o, kostas_d');
   console.log('  keepers: eleni_k, giorgos_p, anna_m, nikos_t');
-  console.log('  admin:   demo_admin');
+  if (process.env.DEMO_ADMIN_PASSWORD) console.log('  admin:   demo_admin (password from DEMO_ADMIN_PASSWORD)');
 }
 
 main()
