@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/40is40inos/PawConnect/actions/workflows/ci.yml/badge.svg)](https://github.com/40is40inos/PawConnect/actions/workflows/ci.yml)
 
-<!-- LIVE_DEMO -->
+**Live demo: https://pawconnect-l8w5.onrender.com**. Log in as owner `maria_o` or keeper `eleni_k` with the password `demo-password`. The free server sleeps when idle, so the first visit can take about a minute. The demo resets to fresh data each time it wakes up.
 
 A marketplace where pet owners find pet keepers (sitters) and book stays for their pets. Keepers set their price and the animals they look after. Owners search, send booking requests and review keepers after a stay.
 
