@@ -4,10 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  backend:
-    name: Backend tests
+  backend-sqlite:
+    name: Backend tests (SQLite)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -21,6 +26,53 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm test
+
+  backend-db:
+    name: Backend tests (${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: MySQL
+            image: mysql:8.4
+            port: 3306
+            url: mysql://paw:paw@127.0.0.1:3306/pawtest
+            health: --health-cmd="mysqladmin ping -h 127.0.0.1 -upaw -ppaw" --health-interval=5s --health-timeout=5s --health-retries=30
+          - db: Postgres
+            image: postgres:16
+            port: 5432
+            url: postgres://paw:paw@127.0.0.1:5432/pawtest
+            health: --health-cmd="pg_isready -U paw -d pawtest" --health-interval=5s --health-timeout=5s --health-retries=30
+    services:
+      db:
+        image: ${{ matrix.image }}
+        # Each image only reads its own variables.
+        env:
+          MYSQL_DATABASE: pawtest
+          MYSQL_USER: paw
+          MYSQL_PASSWORD: paw
+          MYSQL_ROOT_PASSWORD: root
+          POSTGRES_DB: pawtest
+          POSTGRES_USER: paw
+          POSTGRES_PASSWORD: paw
+        ports:
+          - ${{ matrix.port }}:${{ matrix.port }}
+        options: ${{ matrix.health }}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm test
+        env:
+          TEST_DATABASE_URL: ${{ matrix.url }}
 
   frontend:
     name: Frontend build
@@ -40,3 +92,43 @@ jobs:
       - run: npm run build
         env:
           CI: true
+
+  e2e:
+    name: Browser tests (Docker Compose + MySQL)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start the app and database
+        run: docker compose up --build --detach --wait --wait-timeout 240
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run browser tests against http://localhost:5000
+        working-directory: e2e
+        run: npx playwright test
+        env:
+          E2E_BASE_URL: http://localhost:5000
+
+      - name: App logs
+        if: failure()
+        run: docker compose logs app
+
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7

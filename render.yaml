@@ -1,0 +1,25 @@
+# Render Blueprint for the public demo: https://render.com/docs/blueprint-spec
+# Database: a free Neon Postgres project; paste its connection string as
+# DATABASE_URL when Render asks for it.
+services:
+  - type: web
+    name: pawconnect
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Public demo: the free instance sleeps when idle, and every time it wakes
+    # up the database is reset to fresh demo data with current dates.
+    # Never use --reset-everything on a database with real data.
+    dockerCommand: sh -c "node scripts/seedDemo.js --reset-everything && node server.js"
+    healthCheckPath: /api/health
+    # Deploy a new commit on main only after GitHub Actions passes.
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: DATABASE_URL
+        sync: false # entered in the Render dashboard, never committed
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TRUST_PROXY
+        value: "1" # Render's proxy: lets the login rate limiter see real client IPs

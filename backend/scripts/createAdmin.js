@@ -2,7 +2,8 @@
 // Usage: ADMIN_USERNAME=alice ADMIN_PASSWORD='a-long-password' npm run create-admin
 require('dotenv').config();
 
-const { initDB, sequelize } = require('../models');
+const { sequelize } = require('../models');
+const { migrate } = require('../db/migrator');
 const userService = require('../services/userService');
 
 async function main() {
@@ -16,7 +17,7 @@ async function main() {
     throw new Error('Set ADMIN_PASSWORD (12-72 characters)');
   }
 
-  await initDB();
+  await migrate();
   const { created } = await userService.createAdmin(userName, password);
   console.log(created ? `Admin "${userName}" created.` : `Password for admin "${userName}" reset.`);
 }

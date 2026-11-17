@@ -1,0 +1,42 @@
+# Runs PawConnect locally with MySQL and demo data:
+#   docker compose up --build
+# then open http://localhost:5000 (demo password: demo-password).
+# Data is kept in the "db-data" volume; `docker compose down -v` deletes it.
+
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: pawconnect
+      MYSQL_USER: pawconnect
+      MYSQL_PASSWORD: pawconnect
+      MYSQL_ROOT_PASSWORD: local-only-root-password
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      # TCP ping: fails while MySQL is still initialising with networking off.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-upawconnect", "-ppawconnect"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-5000}:5000"
+    environment:
+      DATABASE_URL: mysql://pawconnect:pawconnect@db:3306/pawconnect
+      JWT_SECRET: ${JWT_SECRET:-local-docker-secret-change-me}
+      # Plain http://localhost, so the session cookie can't be HTTPS-only.
+      COOKIE_SECURE: "false"
+      CORS_ORIGIN: http://localhost:5000
+      # Local only: a demo admin account with a known password.
+      DEMO_ADMIN_PASSWORD: demo-password
+    # Migrate, add demo data on the first start only, then serve.
+    command: sh -c "node scripts/seedDemo.js --if-empty && node server.js"
+
+volumes:
+  db-data:

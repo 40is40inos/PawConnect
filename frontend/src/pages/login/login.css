@@ -17,9 +17,12 @@
     gap: 30px;
     flex-direction: column;
     height: auto;
-    min-width: 500px;
+    width: min(500px, 100%);
+    box-sizing: border-box;
+    margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
     min-height: 300px;
-    width: auto;   
     padding-top: 30px;
 }
 
