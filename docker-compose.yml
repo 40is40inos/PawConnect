@@ -35,6 +35,8 @@ services:
       CORS_ORIGIN: http://localhost:5000
       # Local only: a demo admin account with a known password.
       DEMO_ADMIN_PASSWORD: demo-password
+      # Login attempts per IP per 15 minutes (CI raises it for the browser tests).
+      LOGIN_RATE_LIMIT: ${LOGIN_RATE_LIMIT:-10}
     # Migrate, add demo data on the first start only, then serve.
     command: sh -c "node scripts/seedDemo.js --if-empty && node server.js"
 
