@@ -1,4 +1,4 @@
-// Small inline icons for the landing page. Decorative unless given a title.
+// Small inline icons shared by the landing page and the app. Decorative unless given a title.
 const base = { width: '1em', height: '1em', 'aria-hidden': true, focusable: 'false' };
 
 export const PawIcon = (props) => (
@@ -48,5 +48,28 @@ export const CalendarIcon = (props) => (
   <svg viewBox="0 0 24 24" {...stroke} {...base} {...props}>
     <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
     <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </svg>
+);
+
+export const PinIcon = (props) => (
+  <svg viewBox="0 0 24 24" {...stroke} {...base} {...props}>
+    <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+    <circle cx="12" cy="10" r="2.3" />
+  </svg>
+);
+
+export const GridIcon = (props) => (
+  <svg viewBox="0 0 24 24" {...stroke} {...base} {...props}>
+    <rect x="4" y="4" width="6.5" height="6.5" rx="1.6" />
+    <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6" />
+    <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6" />
+    <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6" />
+  </svg>
+);
+
+export const ListIcon = (props) => (
+  <svg viewBox="0 0 24 24" {...stroke} {...base} {...props}>
+    <rect x="4" y="4.5" width="16" height="6" rx="1.6" />
+    <rect x="4" y="13.5" width="16" height="6" rx="1.6" />
   </svg>
 );

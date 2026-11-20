@@ -335,10 +335,6 @@ a.linkCard {
   accent-color: var(--orange);
 }
 
-.searchBar {
-  align-items: flex-end;
-}
-
 /* ---------- Tabs ---------- */
 
 .tabs {

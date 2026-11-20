@@ -1,0 +1,447 @@
+/* Keeper search: the filter bar, the results toolbar and the keeper cards. */
+
+/* ---------- Filter bar ---------- */
+
+.searchBar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.618fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: stretch;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-4);
+  background: color-mix(in srgb, var(--ink-800) 80%, transparent);
+  box-shadow: var(--shadow-2);
+}
+
+.searchField {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px var(--sp-3);
+  border-radius: calc(var(--r-4) - 6px);
+  transition: background-color var(--dur-2);
+}
+.searchField + .searchField {
+  position: relative;
+}
+.searchField + .searchField::before {
+  content: '';
+  position: absolute;
+  top: 22%;
+  bottom: 22%;
+  left: 0;
+  width: 1px;
+  background: var(--line);
+}
+.searchField:hover {
+  background: color-mix(in srgb, var(--peach) 4%, transparent);
+}
+.searchField:focus-within {
+  background: color-mix(in srgb, var(--peach) 8%, transparent);
+}
+.searchField:focus-within::before,
+.searchField:focus-within + .searchField::before {
+  opacity: 0;
+}
+
+.searchField > span {
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.searchField input,
+.searchField select {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: 500 1rem / 1.4 var(--font-body);
+  outline: none;
+}
+.searchField select {
+  cursor: pointer;
+}
+.searchField select option {
+  background: var(--ink-800);
+}
+.searchField input::placeholder {
+  color: color-mix(in srgb, var(--peach) 45%, transparent);
+}
+
+.searchGo {
+  align-self: stretch;
+  padding-inline: 1.6em;
+  border-radius: calc(var(--r-4) - 6px);
+  font-size: 1rem;
+}
+.searchGo svg {
+  font-size: 1.15em;
+}
+.searchSpin {
+  animation: searchSpin 0.89s linear infinite;
+}
+@keyframes searchSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Results toolbar ---------- */
+
+.resultsBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-3);
+  margin-top: var(--sp-1);
+}
+
+.resultsCount {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.4em;
+  margin: 0;
+  color: var(--text-muted);
+}
+.resultsNum {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.resultsNum strong {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: var(--fs-2);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+}
+
+.textButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--orange);
+  font: 600 0.9375rem / 1.2 var(--font-body);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--orange) 40%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.textButton:hover {
+  text-decoration-color: currentColor;
+}
+
+.resultsTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--ink-950) 45%, transparent);
+}
+
+.segment {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45em 0.95em;
+  border: none;
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--text-muted);
+  font: 500 0.875rem / 1.2 var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-2);
+}
+.segment:hover,
+.segment[aria-pressed='true'] {
+  color: var(--text);
+}
+.segmentIcon {
+  padding: 0.45em 0.6em;
+  font-size: 1.05rem;
+}
+.segmentPill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1px solid var(--line);
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--peach) 11%, transparent);
+}
+.App .segment:focus-visible,
+.App .textButton:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+/* ---------- Keeper cards ---------- */
+
+.keeperResults {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  grid-auto-flow: row dense;
+}
+/* A card with its booking form open takes the whole row, so its neighbours
+   don't stretch to match; the others glide out of the way. */
+.keeperSlot:has(.keeperBooking) {
+  grid-column: 1 / -1;
+}
+
+.keeperSlot {
+  display: flex;
+  min-width: 0;
+}
+.keeperSlot > .keeperCard {
+  flex: 1;
+  min-width: 0;
+}
+
+.keeperCard {
+  gap: var(--sp-2);
+  background:
+    radial-gradient(21rem 13rem at 100% 0%, hsl(var(--hue) 75% 62% / 0.13), transparent 70%),
+    linear-gradient(160deg, color-mix(in srgb, var(--peach) 5%, transparent), transparent 61.8%),
+    color-mix(in srgb, var(--ink-800) 82%, transparent);
+}
+.keeperCard:hover {
+  border-color: color-mix(in srgb, var(--peach) 26%, transparent);
+  box-shadow: var(--shadow-2);
+}
+
+.keeperTop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.keeperAvatar {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--r-2);
+  background: linear-gradient(135deg, hsl(var(--hue) 80% 78%), hsl(calc(var(--hue) + 40) 70% 60%));
+  color: var(--ink-950);
+  font-size: 0.875rem;
+  font-weight: 700;
+  transform: rotate(-5deg);
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.keeperCard:hover .keeperAvatar {
+  transform: rotate(5deg) scale(1.05);
+}
+
+.keeperWho {
+  min-width: 0;
+}
+.keeperWho .cardTitle {
+  overflow-wrap: anywhere;
+}
+.keeperPlace {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.keeperPlace svg {
+  flex: none;
+  color: var(--orange);
+}
+
+.keeperPrice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+.keeperPrice strong {
+  color: var(--orange);
+  font-family: var(--font-display);
+  font-size: var(--fs-1);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.keeperPrice small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.keeperBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.keeperRating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+.keeperStar {
+  color: var(--orange);
+}
+.keeperNew {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.keeperBio {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.keeperBooking {
+  overflow: hidden;
+}
+.keeperBooking > .form,
+.keeperBooking > .hint {
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--line);
+}
+
+/* List view: details on the left, actions on the right. */
+.keeperResults.isList {
+  grid-template-columns: 1fr;
+}
+.keeperResults.isList .keeperCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.618fr) minmax(0, 1fr);
+  column-gap: var(--sp-4);
+  align-items: center;
+}
+.keeperResults.isList .keeperTop,
+.keeperResults.isList .keeperBody {
+  grid-column: 1;
+}
+.keeperResults.isList .keeperActions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-content: flex-end;
+  align-self: center;
+}
+.keeperResults.isList .keeperBooking {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Loading skeleton ---------- */
+
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: color-mix(in srgb, var(--ink-800) 70%, transparent);
+}
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.skeletonStack {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton {
+  position: relative;
+  display: block;
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--peach) 8%, transparent);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--peach) 12%, transparent), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.4s var(--ease-in-out) infinite;
+}
+.skeletonAvatar {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: var(--r-2);
+}
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 860px) {
+  .searchBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .searchField:first-child {
+    grid-column: 1 / -1;
+  }
+  .searchField + .searchField::before {
+    display: none;
+  }
+  .searchField {
+    background: color-mix(in srgb, var(--peach) 4%, transparent);
+  }
+  .searchGo {
+    grid-column: 1 / -1;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 760px) {
+  .viewToggle {
+    display: none;
+  }
+  .keeperResults.isList .keeperCard {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchBar {
+    grid-template-columns: 1fr;
+  }
+  .resultsTools,
+  .resultsTools .segmented {
+    width: 100%;
+  }
+  .resultsTools .segment {
+    flex: 1;
+  }
+}
