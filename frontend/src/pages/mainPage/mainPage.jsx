@@ -10,6 +10,7 @@ import { BookingsPanel } from '../../components/BookingsPanel';
 import { KeeperProfileForm } from '../../components/KeeperProfileForm';
 import { ProfileForm } from '../../components/ProfileForm';
 import { DisplayUsers } from '../../components/displayUsers/displayUsers';
+import { Landing } from '../landing/Landing';
 import '../../components/marketplace.css';
 
 const OWNER_TABS = [
@@ -34,6 +35,7 @@ export const MainPage = () => {
   const [keeperProfile, setKeeperProfile] = useState(undefined); // undefined = not loaded yet
   const [owners, setOwners] = useState(null);
   const [error, setError] = useState(null);
+  const [visitor, setVisitor] = useState(false); // not logged in: show the landing page
 
   const isKeeper = user?.type === 'PETKEEPER';
   const fail = (err) => setError(errorMessage(err));
@@ -44,7 +46,7 @@ export const MainPage = () => {
   useEffect(() => {
     getMe()
       .then(async (me) => {
-        if (!me) return navigate('/login');
+        if (!me) return setVisitor(true);
         if (me.role === 'ADMIN') return navigate('/admin');
         setUser(me);
         if (me.type === 'PETKEEPER') {
@@ -64,6 +66,7 @@ export const MainPage = () => {
     if (tab === 'owners' && owners === null) getPetOwners().then(setOwners).catch(fail);
   }, [tab, owners]);
 
+  if (visitor) return <Landing />;
   if (!user) return error ? <p className="error">{error}</p> : null;
 
   const waiting = bookings.filter((b) => b.status === 'REQUESTED').length;

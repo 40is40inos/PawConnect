@@ -1,0 +1,106 @@
+/*
+ * PawConnect design tokens.
+ *
+ * Everything here is derived from the golden ratio, φ ≈ 1.618:
+ * - Type steps are powers of √φ (≈ 1.272), so every second step is ×φ.
+ * - Spacing follows the Fibonacci sequence (8, 13, 21, 34, 55, 89, 144),
+ *   whose neighbouring terms approach φ.
+ * - Layout splits use 61.8% / 38.2%, i.e. 1.618fr / 1fr.
+ *
+ * The older variables in App.css (--bg-color, --font-color, …) still work;
+ * new code should use these.
+ */
+
+:root {
+  --phi: 1.618;
+  --phi-inv: 0.618;
+
+  /* Colour: PawConnect's dark navy, warmed up with peach and orange. */
+  --ink-950: #16182a;
+  --ink-900: #1e2034;
+  --ink-800: #2d3047;
+  --ink-700: #3a3d5a;
+  --ink-600: #4a4e6e;
+  --peach: #ffdbb5;
+  --cream: #fff4e6;
+  --orange: #e0a458;
+  --orange-hot: #f08a4b;
+  --pink: #c04abc;
+  --green: #419d78;
+  --text: var(--peach);
+  --text-muted: color-mix(in srgb, var(--peach) 68%, transparent);
+  --line: color-mix(in srgb, var(--peach) 14%, transparent);
+  --glass: color-mix(in srgb, var(--ink-700) 55%, transparent);
+  --gradient-warm: linear-gradient(135deg, var(--orange) 0%, var(--orange-hot) 45%, var(--pink) 100%);
+
+  /* Type: steps of √φ from a 16px base. */
+  --fs-0: 1rem;        /* 16  */
+  --fs-1: 1.272rem;    /* 20  */
+  --fs-2: 1.618rem;    /* 26  */
+  --fs-3: 2.058rem;    /* 33  */
+  --fs-4: 2.618rem;    /* 42  */
+  --fs-5: 4.236rem;    /* 68  */
+  --fs-6: 6.854rem;    /* 110 */
+  --fs-small: 0.786rem; /* 1/√φ */
+  --fs-display: clamp(var(--fs-4), 6.4vw, var(--fs-6));
+  --fs-title: clamp(var(--fs-3), 4.6vw, var(--fs-5));
+  --lh-body: 1.618;
+  --lh-tight: 1.02;
+
+  --font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
+  --font-body: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Spacing: Fibonacci. */
+  --sp-1: 0.5rem;    /* 8   */
+  --sp-2: 0.8125rem; /* 13  */
+  --sp-3: 1.3125rem; /* 21  */
+  --sp-4: 2.125rem;  /* 34  */
+  --sp-5: 3.4375rem; /* 55  */
+  --sp-6: 5.5625rem; /* 89  */
+  --sp-7: 9rem;      /* 144 */
+
+  /* Radii: Fibonacci too. */
+  --r-1: 8px;
+  --r-2: 13px;
+  --r-3: 21px;
+  --r-4: 34px;
+  --r-pill: 999px;
+
+  --max-width: 1236px; /* 764 × φ */
+  --gutter: clamp(16px, 4vw, var(--sp-5));
+
+  /* Depth */
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.2), 0 8px 21px -8px rgb(0 0 0 / 0.35);
+  --shadow-2: 0 2px 5px rgb(0 0 0 / 0.2), 0 21px 55px -13px rgb(0 0 0 / 0.55);
+  --shadow-glow: 0 13px 55px -13px color-mix(in srgb, var(--orange-hot) 70%, transparent);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 160ms;
+  --dur-2: 260ms; /* 160 × φ */
+  --dur-3: 420ms; /* 260 × φ */
+}
+
+body {
+  font-family: var(--font-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--orange);
+  color: var(--ink-900);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
