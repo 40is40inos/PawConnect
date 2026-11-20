@@ -1,0 +1,282 @@
+/* Dashboard: stat tiles, tab panels, booking and pet cards. */
+
+/* ---------- Stat tiles ---------- */
+
+.statStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-2);
+  width: 100%;
+  max-width: 1000px;
+}
+
+.statTile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: var(--sp-3);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--peach) 6%, transparent), transparent 61.8%),
+    color-mix(in srgb, var(--ink-800) 82%, transparent);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-2), box-shadow var(--dur-3) var(--ease-out);
+}
+.statTile:hover {
+  border-color: color-mix(in srgb, var(--peach) 26%, transparent);
+  box-shadow: var(--shadow-2);
+}
+.statTile::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 61.8%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--orange) 16%, transparent), transparent);
+  pointer-events: none;
+}
+.statTile.isHot {
+  border-color: color-mix(in srgb, var(--orange) 55%, transparent);
+}
+.statTile.isHot::before {
+  content: '';
+  position: absolute;
+  top: var(--sp-3);
+  right: var(--sp-3);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation: statPulse 1.6s var(--ease-out) infinite;
+}
+@keyframes statPulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--orange) 70%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-size: var(--fs-4);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.statLabel {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.App .statTile:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* ---------- Booking cards ---------- */
+
+.bookingSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.bookingSection + .bookingSection {
+  margin-top: var(--sp-2);
+}
+
+.bookingCard {
+  gap: var(--sp-2);
+}
+.bookingSection .cardGrid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+}
+
+/* Badge, name, status. The status wraps under the name when space runs out. */
+.bookingTop,
+.petTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+}
+.bookingTop .cardTitle,
+.petTop .cardTitle {
+  flex: 1 1 8em;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.bookingTop .badge,
+.petTop .chip {
+  margin-left: auto;
+}
+
+.petBadge {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-2);
+  background: linear-gradient(135deg, hsl(var(--hue) 80% 78%), hsl(calc(var(--hue) + 40) 70% 60%));
+  color: var(--ink-950);
+  font-family: var(--font-display);
+  font-size: var(--fs-1);
+  font-weight: 600;
+  transform: rotate(-5deg);
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.card:hover .petBadge {
+  transform: rotate(5deg) scale(1.05);
+}
+
+/* Open requests get a pulsing dot in their status badge. */
+.status-REQUESTED .badge::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  vertical-align: 1px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: statPulse 1.6s var(--ease-out) infinite;
+}
+
+/* "15 Dec 2026 ——— 18 Dec 2026" */
+.stayLine {
+  display: grid;
+  grid-template-columns: auto minmax(21px, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-1);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.stayTrack {
+  position: relative;
+  height: 2px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--peach) 14%, transparent);
+}
+.stayTrack span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--gradient-warm);
+  transform-origin: 0 50%;
+  animation: stayDraw 0.9s var(--ease-out) both;
+}
+.stayTrack::before,
+.stayTrack::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+  transform: translateY(-50%);
+}
+.stayTrack::before {
+  left: -2px;
+}
+.stayTrack::after {
+  right: -2px;
+  background: var(--pink);
+}
+@keyframes stayDraw {
+  from {
+    transform: scaleX(0);
+  }
+}
+.status-DECLINED .stayTrack span,
+.status-CANCELLED .stayTrack span {
+  background: var(--ink-600);
+}
+.stayMeta {
+  margin-top: calc(-1 * var(--sp-1));
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Action buttons: spinner while working, a drawn tick when done. */
+.actionBtn {
+  gap: 8px;
+}
+.btnSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btnSpin 0.7s linear infinite;
+}
+@keyframes btnSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.drawnCheck {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Review form */
+.reviewForm {
+  overflow: hidden;
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--line);
+}
+.reviewRatingRow {
+  align-items: flex-end;
+}
+.reviewRatingRow .field {
+  flex: 0 1 160px;
+}
+.starPreview {
+  display: inline-flex;
+  gap: 4px;
+  padding-bottom: 8px;
+  color: var(--orange);
+  font-size: 1.4rem;
+}
+.starPreview > span {
+  display: inline-flex;
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 760px) {
+  .statStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .statValue {
+    font-size: var(--fs-3);
+  }
+}
