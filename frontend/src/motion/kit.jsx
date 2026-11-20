@@ -244,3 +244,17 @@ export function goldenSpiralPath(cx = 50, cy = 50, r = 48, turns = 2.75) {
   }
   return `M${points.join(' L')}`;
 }
+
+// A number that animates from its previous value to the new one, e.g. a
+// count on a dashboard tile. `format` turns the in-between value into text.
+const roundNumber = (v) => String(Math.round(v));
+export function AnimatedNumber({ value, format = roundNumber }) {
+  const reduce = useReducedMotion();
+  const mv = useMotionValue(0);
+  const text = useTransform(mv, format);
+  useEffect(() => {
+    const controls = animate(mv, value, { duration: reduce ? 0 : 1.2, ease: EASE_OUT });
+    return () => controls.stop();
+  }, [mv, value, reduce]);
+  return <motion.span>{text}</motion.span>;
+}

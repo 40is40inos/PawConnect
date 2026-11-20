@@ -1,8 +1,18 @@
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { createPet, deletePet, updatePet } from '../api/market';
 import { errorMessage } from '../api/client';
 import { SPECIES, SPECIES_LABELS } from '../utils/format';
+import { hueFor } from '../utils/avatar';
+import { EASE_OUT } from '../motion/kit';
 import './marketplace.css';
+import './dashboard.css';
+
+const appear = {
+  initial: { opacity: 0, y: 21, scale: 0.97 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
+};
 
 const toNumberOrNull = (value) => (value === '' ? null : Number(value));
 const toTextOrNull = (value) => value.trim() || null;
@@ -28,7 +38,13 @@ const PetForm = ({ pet, onSaved, onCancel }) => {
   };
 
   return (
-    <form className="card form" onSubmit={onSubmit}>
+    <motion.form
+      className="card form petForm"
+      onSubmit={onSubmit}
+      layout="position"
+      {...appear}
+      transition={{ duration: 0.4, ease: EASE_OUT }}
+    >
       <h3 className="cardTitle">{pet ? `Edit ${pet.name}` : 'Add a pet'}</h3>
       <div className="formRow">
         <label className="field">
@@ -84,7 +100,7 @@ const PetForm = ({ pet, onSaved, onCancel }) => {
           Cancel
         </button>
       </div>
-    </form>
+    </motion.form>
   );
 };
 
@@ -115,53 +131,67 @@ export const PetsPanel = ({ pets, onChange }) => {
           </button>
         )}
       </div>
-      {error && <p className="error">{error}</p>}
-      {editing === 'new' && <PetForm onSaved={saved} onCancel={() => setEditing(null)} />}
+      {error && <p className="error" role="alert">{error}</p>}
+      <AnimatePresence initial={false}>
+        {editing === 'new' && <PetForm key="new" onSaved={saved} onCancel={() => setEditing(null)} />}
+      </AnimatePresence>
       {pets.length === 0 && editing !== 'new' && (
         <div className="empty">You haven't added any pets yet. Add one to start booking keepers.</div>
       )}
       <div className="cardGrid">
-        {pets.map((pet) =>
-          editing?.id === pet.id ? (
-            <PetForm key={pet.id} pet={pet} onSaved={saved} onCancel={() => setEditing(null)} />
-          ) : (
-            <div className="card" key={pet.id}>
-              <div className="cardHeader">
-                <h3 className="cardTitle">{pet.name}</h3>
-                <span className="chip">{SPECIES_LABELS[pet.species]}</span>
-              </div>
-              <dl className="details">
-                {pet.breed && (
-                  <>
-                    <dt>Breed</dt>
-                    <dd>{pet.breed}</dd>
-                  </>
-                )}
-                {pet.birthYear && (
-                  <>
-                    <dt>Born</dt>
-                    <dd>{pet.birthYear}</dd>
-                  </>
-                )}
-                {pet.weightKg && (
-                  <>
-                    <dt>Weight</dt>
-                    <dd>{pet.weightKg} kg</dd>
-                  </>
-                )}
-              </dl>
-              {pet.careNotes && <p className="quote">{pet.careNotes}</p>}
-              <div className="actions">
-                <button className="btn btn-secondary" onClick={() => setEditing(pet)}>
-                  Edit
-                </button>
-                <button className="btn btn-secondary" onClick={() => onDelete(pet)}>
-                  Remove
-                </button>
-              </div>
-            </div>
-          )
-        )}
+        <AnimatePresence>
+          {pets.map((pet, i) =>
+            editing?.id === pet.id ? (
+              <PetForm key={`edit-${pet.id}`} pet={pet} onSaved={saved} onCancel={() => setEditing(null)} />
+            ) : (
+              <motion.div
+                className="card petCard"
+                key={`pet-${pet.id}`}
+                layout="position"
+                style={{ '--hue': hueFor(pet.name) }}
+                {...appear}
+                transition={{ duration: 0.5, ease: EASE_OUT, delay: Math.min(i, 6) * 0.06 }}
+              >
+                <div className="petTop">
+                  <span className="petBadge" aria-hidden="true">
+                    {pet.name[0]}
+                  </span>
+                  <h3 className="cardTitle">{pet.name}</h3>
+                  <span className="chip">{SPECIES_LABELS[pet.species]}</span>
+                </div>
+                <dl className="details">
+                  {pet.breed && (
+                    <>
+                      <dt>Breed</dt>
+                      <dd>{pet.breed}</dd>
+                    </>
+                  )}
+                  {pet.birthYear && (
+                    <>
+                      <dt>Born</dt>
+                      <dd>{pet.birthYear}</dd>
+                    </>
+                  )}
+                  {pet.weightKg && (
+                    <>
+                      <dt>Weight</dt>
+                      <dd>{pet.weightKg} kg</dd>
+                    </>
+                  )}
+                </dl>
+                {pet.careNotes && <p className="quote">{pet.careNotes}</p>}
+                <div className="actions">
+                  <button className="btn btn-secondary" onClick={() => setEditing(pet)}>
+                    Edit
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => onDelete(pet)}>
+                    Remove
+                  </button>
+                </div>
+              </motion.div>
+            )
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );

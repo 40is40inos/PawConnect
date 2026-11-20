@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutGroup, motion, useIsPresent } from 'motion/react';
+import { AnimatePresence, LayoutGroup, motion, useIsPresent } from 'motion/react';
 import { getPetOwners } from '../../api/users';
 import { getBookings, getKeeperProfile, getPets } from '../../api/market';
 import { errorMessage } from '../../api/client';
@@ -12,6 +12,9 @@ import { ProfileForm } from '../../components/ProfileForm';
 import { DisplayUsers } from '../../components/displayUsers/displayUsers';
 import { Landing } from '../landing/Landing';
 import { useSession } from '../../session';
+import { AnimatedNumber, EASE_OUT } from '../../motion/kit';
+import { formatPrice, todayISO } from '../../utils/format';
+import '../../components/dashboard.css';
 import '../../components/marketplace.css';
 
 const OWNER_TABS = [
@@ -81,6 +84,31 @@ export const MainPage = () => {
   const waiting = bookings.filter((b) => b.status === 'REQUESTED').length;
   const tabs = isKeeper ? KEEPER_TABS : OWNER_TABS;
 
+  const openTab = (key) => {
+    setError(null);
+    setTab(key);
+    if (key === 'bookings') loadBookings();
+  };
+
+  // Headline numbers. Accepted stays count towards the money total.
+  const today = todayISO();
+  const accepted = bookings.filter((b) => b.status === 'ACCEPTED');
+  const upcoming = accepted.filter((b) => b.endDate >= today).length;
+  const money = accepted.reduce((sum, b) => sum + Number(b.totalPrice), 0);
+  const stats = isKeeper
+    ? [
+        { label: 'Requests waiting', value: waiting, tab: 'bookings', hot: waiting > 0 },
+        { label: 'Upcoming stays', value: upcoming, tab: 'bookings' },
+        { label: 'Stays completed', value: bookings.filter((b) => b.completed).length, tab: 'bookings' },
+        { label: 'Earned from stays', value: money, tab: 'bookings', format: formatPrice },
+      ]
+    : [
+        { label: 'My pets', value: pets.length, tab: 'pets' },
+        { label: 'Requests waiting', value: waiting, tab: 'bookings', hot: waiting > 0 },
+        { label: 'Upcoming stays', value: upcoming, tab: 'bookings' },
+        { label: 'Spent on stays', value: money, tab: 'bookings', format: formatPrice },
+      ];
+
   return (
     <div className="dashboard">
       <header className="dashboardHeader">
@@ -90,6 +118,27 @@ export const MainPage = () => {
         </div>
       </header>
 
+      <div className="statStrip">
+        {stats.map((st, i) => (
+          <motion.button
+            key={st.label}
+            type="button"
+            className={`statTile ${st.hot ? 'isHot' : ''}`}
+            onClick={() => openTab(st.tab)}
+            initial={{ opacity: 0, y: 21 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.1 + i * 0.07 }}
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <span className="statValue">
+              <AnimatedNumber value={st.value} format={st.format} />
+            </span>
+            <span className="statLabel">{st.label}</span>
+          </motion.button>
+        ))}
+      </div>
+
       <LayoutGroup id="dashboardTabs">
         <nav className="tabs" role="tablist">
           {tabs.map(([key, label]) => (
@@ -98,11 +147,7 @@ export const MainPage = () => {
               className="tab"
               role="tab"
               aria-selected={tab === key}
-              onClick={() => {
-                setError(null);
-                setTab(key);
-                if (key === 'bookings') loadBookings();
-              }}
+              onClick={() => openTab(key)}
             >
               {tab === key && (
                 <motion.span
@@ -120,19 +165,30 @@ export const MainPage = () => {
 
       {error && <p className="error" role="alert">{error}</p>}
 
-      {tab === 'find' && <KeeperSearch pets={pets} canBook onBooked={loadBookings} />}
-      {tab === 'pets' && <PetsPanel pets={pets} onChange={loadPets} />}
-      {tab === 'bookings' && <BookingsPanel bookings={bookings} role={user.type} onChange={loadBookings} />}
-      {tab === 'profile' && keeperProfile !== undefined && (
-        <KeeperProfileForm profile={keeperProfile} onSaved={setKeeperProfile} />
-      )}
-      {tab === 'owners' && (
-        <section className="panel">
-          <h2 className="panelTitle">Pet owners</h2>
-          {owners && <DisplayUsers users={owners} />}
-        </section>
-      )}
-      {tab === 'details' && <ProfileForm user={user} onSaved={setUser} />}
+      {/* Tab content fades up when you switch tabs. */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={tab}
+          className="tabPanel"
+          initial={{ opacity: 0, y: 13 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: 0.35, ease: EASE_OUT } }}
+          exit={{ opacity: 0, y: -8, transition: { duration: 0.12 } }}
+        >
+          {tab === 'find' && <KeeperSearch pets={pets} canBook onBooked={loadBookings} />}
+          {tab === 'pets' && <PetsPanel pets={pets} onChange={loadPets} />}
+          {tab === 'bookings' && <BookingsPanel bookings={bookings} role={user.type} onChange={loadBookings} />}
+          {tab === 'profile' && keeperProfile !== undefined && (
+            <KeeperProfileForm profile={keeperProfile} onSaved={setKeeperProfile} />
+          )}
+          {tab === 'owners' && (
+            <section className="panel">
+              <h2 className="panelTitle">Pet owners</h2>
+              {owners && <DisplayUsers users={owners} />}
+            </section>
+          )}
+          {tab === 'details' && <ProfileForm user={user} onSaved={setUser} />}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

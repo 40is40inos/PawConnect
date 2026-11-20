@@ -1,8 +1,23 @@
 import { useState } from 'react';
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'motion/react';
 import { acceptBooking, cancelBooking, declineBooking, reviewBooking } from '../api/market';
 import { errorMessage } from '../api/client';
-import { SPECIES_LABELS, STATUS_LABELS, formatDate, formatPrice, stars, todayISO } from '../utils/format';
+import {
+  SPECIES_LABELS,
+  STATUS_LABELS,
+  daysInclusive,
+  formatDate,
+  formatPrice,
+  stars,
+  todayISO,
+} from '../utils/format';
+import { hueFor } from '../utils/avatar';
+import { EASE_OUT } from '../motion/kit';
+import { StarIcon } from '../pages/landing/icons';
 import './marketplace.css';
+import './dashboard.css';
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const ReviewForm = ({ booking, onDone }) => {
   const [rating, setRating] = useState(5);
@@ -17,8 +32,14 @@ const ReviewForm = ({ booking, onDone }) => {
   };
 
   return (
-    <form className="form" onSubmit={onSubmit}>
-      <div className="formRow">
+    <motion.form
+      className="form reviewForm"
+      onSubmit={onSubmit}
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      transition={{ duration: 0.3, ease: EASE_OUT }}
+    >
+      <div className="formRow reviewRatingRow">
         <label className="field">
           Rating
           <select value={rating} onChange={(e) => setRating(e.target.value)}>
@@ -29,6 +50,18 @@ const ReviewForm = ({ booking, onDone }) => {
             ))}
           </select>
         </label>
+        {/* A live preview of the chosen rating. */}
+        <span className="starPreview" aria-hidden="true">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <motion.span
+              key={n}
+              animate={{ scale: n <= rating ? 1 : 0.78, opacity: n <= rating ? 1 : 0.3 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 20, delay: n * 0.03 }}
+            >
+              <StarIcon />
+            </motion.span>
+          ))}
+        </span>
       </div>
       <label className="field">
         How did it go? (optional)
@@ -40,13 +73,50 @@ const ReviewForm = ({ booking, onDone }) => {
           Post review
         </button>
       </div>
-    </form>
+    </motion.form>
   );
 };
 
+// A tick that draws itself, shown on an action button once the server agrees.
+const DrawnCheck = () => (
+  <svg className="drawnCheck" viewBox="0 0 24 24" aria-hidden="true">
+    <motion.path
+      d="M5 12.5l4.5 4.5L19 7.5"
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{ duration: 0.35, ease: EASE_OUT }}
+    />
+  </svg>
+);
+
+// Shows a spinner while the request runs and a drawn tick when it is done.
+const ActionButton = ({ id, state, className, onClick, children }) => (
+  <motion.button
+    className={`btn actionBtn ${className}`}
+    onClick={onClick}
+    disabled={state.busy !== null}
+    whileTap={{ scale: 0.94 }}
+  >
+    {state.done === id ? (
+      <DrawnCheck />
+    ) : (
+      state.busy === id && <span className="btnSpinner" aria-hidden="true" />
+    )}
+    {children}
+  </motion.button>
+);
+
+// Ring colours for the moment an action succeeds. Literal colours (not CSS
+// variables) so the shadow can animate.
+const FLASH = { accept: '#419d78', decline: '#7a7fa6', cancel: '#7a7fa6' };
+const RESTING_SHADOW = '0 0 0 0px rgba(0, 0, 0, 0), 0 8px 21px -8px rgba(0, 0, 0, 0.35)';
+const flashShadow = (c) => `0 0 0 2px ${c}, 0 21px 55px -21px ${c}`;
+
 const BookingCard = ({ booking, role, onChange }) => {
+  const reduce = useReducedMotion();
   const [error, setError] = useState(null);
   const [reviewing, setReviewing] = useState(false);
+  const [action, setAction] = useState({ busy: null, done: null });
   const isKeeper = role === 'PETKEEPER';
   const { pet, otherParty } = booking;
   const statusKey = booking.completed ? 'COMPLETED' : booking.status;
@@ -55,13 +125,24 @@ const BookingCard = ({ booking, role, onChange }) => {
     : isKeeper && booking.status === 'REQUESTED'
       ? 'Needs your answer'
       : STATUS_LABELS[booking.status];
+  const days = daysInclusive(booking.startDate, booking.endDate);
 
-  const act = (action, confirmText) => () => {
+  // Run the request, let the tick draw, then refresh: the card then flies
+  // to its new section.
+  const act = (id, request, confirmText) => () => {
     if (confirmText && !window.confirm(confirmText)) return;
     setError(null);
-    action(booking.id)
+    setAction({ busy: id, done: null });
+    request(booking.id)
+      .then(() => {
+        setAction({ busy: id, done: id });
+        return wait(reduce ? 0 : 650);
+      })
       .then(onChange)
-      .catch((err) => setError(errorMessage(err)));
+      .catch((err) => {
+        setError(errorMessage(err));
+        setAction({ busy: null, done: null });
+      });
   };
 
   const canCancel =
@@ -69,16 +150,38 @@ const BookingCard = ({ booking, role, onChange }) => {
     (booking.status === 'REQUESTED' || (booking.status === 'ACCEPTED' && booking.startDate > todayISO()));
 
   return (
-    <div className="card">
-      <div className="cardHeader">
+    <motion.div
+      layoutId={`booking-${booking.id}`}
+      className={`card bookingCard status-${statusKey}`}
+      style={{ '--hue': hueFor(pet.name) }}
+      initial={{ opacity: 0, y: 21 }}
+      animate={{
+        opacity: 1,
+        y: 0,
+        boxShadow: action.done ? flashShadow(FLASH[action.done]) : RESTING_SHADOW,
+      }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.45, ease: EASE_OUT, layout: { type: 'spring', stiffness: 220, damping: 28 } }}
+    >
+      <div className="bookingTop">
+        <span className="petBadge" aria-hidden="true">
+          {pet.name[0]}
+        </span>
         <h3 className="cardTitle">
           {pet.name} <span className="cardMeta">({SPECIES_LABELS[pet.species]})</span>
         </h3>
         <span className={`badge badge-${statusKey}`}>{statusLabel}</span>
       </div>
-      <div>
-        {formatDate(booking.startDate)} – {formatDate(booking.endDate)} ·{' '}
-        <span className="price">{formatPrice(booking.totalPrice)}</span>
+
+      <div className="stayLine">
+        <span className="stayDate">{formatDate(booking.startDate)}</span>
+        <span className="stayTrack" aria-hidden="true">
+          <span />
+        </span>
+        <span className="stayDate">{formatDate(booking.endDate)}</span>
+      </div>
+      <div className="stayMeta">
+        {days} {days === 1 ? 'day' : 'days'} · <span className="price">{formatPrice(booking.totalPrice)}</span>
       </div>
 
       <dl className="details">
@@ -131,18 +234,28 @@ const BookingCard = ({ booking, role, onChange }) => {
       <div className="actions">
         {isKeeper && booking.status === 'REQUESTED' && (
           <>
-            <button className="btn btn-accept" onClick={act(acceptBooking)}>
+            <ActionButton id="accept" state={action} className="btn-accept" onClick={act('accept', acceptBooking)}>
               Accept
-            </button>
-            <button className="btn btn-secondary" onClick={act(declineBooking, 'Decline this request?')}>
+            </ActionButton>
+            <ActionButton
+              id="decline"
+              state={action}
+              className="btn-secondary"
+              onClick={act('decline', declineBooking, 'Decline this request?')}
+            >
               Decline
-            </button>
+            </ActionButton>
           </>
         )}
         {canCancel && (
-          <button className="btn btn-secondary" onClick={act(cancelBooking, 'Cancel this booking?')}>
+          <ActionButton
+            id="cancel"
+            state={action}
+            className="btn-secondary"
+            onClick={act('cancel', cancelBooking, 'Cancel this booking?')}
+          >
             {booking.status === 'REQUESTED' ? 'Withdraw request' : 'Cancel booking'}
-          </button>
+          </ActionButton>
         )}
         {booking.canReview && !reviewing && (
           <button className="btn" onClick={() => setReviewing(true)}>
@@ -159,7 +272,7 @@ const BookingCard = ({ booking, role, onChange }) => {
           }}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 
@@ -171,7 +284,7 @@ export const BookingsPanel = ({ bookings, role, onChange }) => {
   const past = bookings.filter((b) => !waiting.includes(b) && !upcoming.includes(b));
 
   const section = (title, list, emptyText) => (
-    <>
+    <div className="bookingSection">
       <h3 className="cardTitle">
         {title} {list.length > 0 && <span className="count">{list.length}</span>}
       </h3>
@@ -179,12 +292,14 @@ export const BookingsPanel = ({ bookings, role, onChange }) => {
         emptyText && <p className="hint">{emptyText}</p>
       ) : (
         <div className="cardGrid">
-          {list.map((b) => (
-            <BookingCard key={b.id} booking={b} role={role} onChange={onChange} />
-          ))}
+          <AnimatePresence initial={false}>
+            {list.map((b) => (
+              <BookingCard key={b.id} booking={b} role={role} onChange={onChange} />
+            ))}
+          </AnimatePresence>
         </div>
       )}
-    </>
+    </div>
   );
 
   return (
@@ -198,11 +313,12 @@ export const BookingsPanel = ({ bookings, role, onChange }) => {
         </div>
       )}
       {bookings.length > 0 && (
-        <>
+        // One layout group, so a card whose status changes flies to its new section.
+        <LayoutGroup id="bookings">
           {section(isKeeper ? 'Waiting for your answer' : 'Waiting for the keeper', waiting, 'Nothing waiting.')}
           {section('Upcoming stays', upcoming, 'No upcoming stays.')}
           {past.length > 0 && section('Past and closed', past)}
-        </>
+        </LayoutGroup>
       )}
     </section>
   );
