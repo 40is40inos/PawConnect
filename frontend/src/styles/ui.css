@@ -1,6 +1,6 @@
 /*
  * Small pieces shared by the landing page and the app screens:
- * pill buttons and the PawConnect logo.
+ * pill buttons, the PawConnect logo and the tilt card from motion/kit.
  */
 
 .pill {
@@ -88,4 +88,22 @@
 }
 a:hover .logoMark {
   transform: rotate(8deg) scale(1.06);
+}
+
+/* <Tilt> from motion/kit */
+.tilt {
+  position: relative;
+  transform-style: preserve-3d;
+}
+.tiltGlare {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-3);
+}
+.tilt:hover > .tiltGlare {
+  opacity: 1;
 }

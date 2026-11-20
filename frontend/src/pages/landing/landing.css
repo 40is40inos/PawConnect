@@ -111,17 +111,6 @@ html.lenis body {
   font-variation-settings: 'SOFT' 100, 'WONK' 1;
 }
 
-.tilt {
-  position: relative;
-  transform-style: preserve-3d;
-}
-.tiltGlare {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  border-radius: inherit;
-  pointer-events: none;
-}
 
 /* ---------- Nav ---------- */
 
