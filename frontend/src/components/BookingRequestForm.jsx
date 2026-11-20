@@ -4,11 +4,16 @@ import { errorMessage } from '../api/client';
 import { SPECIES_LABELS, daysInclusive, formatPrice, todayISO } from '../utils/format';
 
 // Lets an owner request a stay with a keeper for one of their pets.
-export const BookingRequestForm = ({ keeper, pets, onDone, onCancel }) => {
+// Pass `dates` and `onDatesChange` to control the dates from outside (e.g. a
+// calendar next to the form).
+export const BookingRequestForm = ({ keeper, pets, onDone, onCancel, dates, onDatesChange }) => {
   const eligible = pets.filter((p) => keeper.acceptedSpecies.includes(p.species));
   const [petId, setPetId] = useState(eligible[0]?.id ?? '');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [ownDates, setOwnDates] = useState({ start: '', end: '' });
+  const { start: startDate, end: endDate } = dates ?? ownDates;
+  const setDates = (next) => (onDatesChange ?? setOwnDates)({ start: startDate, end: endDate, ...next });
+  const setStartDate = (start) => setDates(endDate && endDate < start ? { start, end: '' } : { start });
+  const setEndDate = (end) => setDates({ end });
   const [message, setMessage] = useState('');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
