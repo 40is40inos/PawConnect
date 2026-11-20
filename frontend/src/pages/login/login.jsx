@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/auth';
 import { errorMessage } from '../../api/client';
+import { useSession } from '../../session';
 
 import './login.css';
 
 export const Login = () => {
   const navigate = useNavigate();
+  const { setMe } = useSession();
   const [serverError, setServerError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,7 +19,10 @@ export const Login = () => {
     setServerError(null);
 
     login(username.value, password.value)
-      .then((profile) => navigate(profile.role === 'ADMIN' ? '/admin' : '/'))
+      .then((profile) => {
+        setMe(profile);
+        navigate(profile.role === 'ADMIN' ? '/admin' : '/');
+      })
       .catch((err) => setServerError(errorMessage(err)))
       .finally(() => setSubmitting(false));
   };

@@ -1,0 +1,91 @@
+/*
+ * Small pieces shared by the landing page and the app screens:
+ * pill buttons and the PawConnect logo.
+ */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 0.95em 1.6em;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  font: 600 var(--fs-0) / 1 var(--font-body);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    background-color var(--dur-2),
+    border-color var(--dur-2),
+    box-shadow var(--dur-3) var(--ease-out);
+}
+.pill:hover {
+  transform: translateY(-2px);
+}
+.pill:active {
+  transform: translateY(0) scale(0.97);
+}
+.pillArrow {
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.pill:hover .pillArrow {
+  transform: translateX(4px);
+}
+.pillPrimary {
+  background: var(--gradient-warm);
+  color: var(--ink-950);
+  box-shadow: var(--shadow-glow);
+}
+.pillPrimary:hover {
+  box-shadow: 0 21px 55px -13px color-mix(in srgb, var(--orange-hot) 90%, transparent);
+}
+.pillGhost {
+  color: var(--text);
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--peach) 4%, transparent);
+}
+.pillGhost:hover {
+  border-color: color-mix(in srgb, var(--peach) 45%, transparent);
+}
+.pillSmall {
+  padding: 0.7em 1.2em;
+  font-size: 0.9375rem;
+}
+.pillDark {
+  background: var(--ink-900);
+  color: var(--peach);
+}
+.pillOutlineDark {
+  border: 1.5px solid rgb(22 24 42 / 0.45);
+  color: var(--ink-950);
+}
+.pillOutlineDark:hover {
+  background: rgb(22 24 42 / 0.08);
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--peach);
+  font-family: var(--font-display);
+  font-size: var(--fs-1);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.logoMark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--gradient-warm);
+  color: var(--ink-950);
+  font-size: 20px;
+  transform: rotate(-8deg);
+  transition: transform var(--dur-3) var(--ease-out);
+}
+a:hover .logoMark {
+  transform: rotate(8deg) scale(1.06);
+}

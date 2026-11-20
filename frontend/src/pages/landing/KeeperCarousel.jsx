@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { Reveal } from '../../motion/kit';
 import { SPECIES_LABELS, formatPrice } from '../../utils/format';
 import { ArrowIcon, ChevronIcon, PawIcon, StarIcon } from './icons';
-import { hueFor, initials } from './Hero';
+import { hueFor, initials } from '../../utils/avatar';
 
 const AUTOPLAY_MS = 4236; // φ³ seconds, roughly
 

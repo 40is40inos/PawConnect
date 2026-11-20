@@ -1,82 +1,109 @@
-/* 
-    --bg-color: #2D3047;
-    --font-color: #FFDBB5;
-    --pink-color: #C04ABC;
-    --orange-color: #C04ABC;
-    --green-color: #419D78; 
+/* Login and register card. The full redesign of these pages comes later;
+   this brings them onto the shared tokens. */
 
-*/
-
-.loginBody{
-    background-color: var(--bg-color-20);
-    border: 1px solid var(--pink-color);
-    border-radius: 15px;
-    color: var(--font-color);
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    flex-direction: column;
-    height: auto;
-    width: min(500px, 100%);
-    box-sizing: border-box;
-    margin: 0 auto;
-    padding-left: 16px;
-    padding-right: 16px;
-    min-height: 300px;
-    padding-top: 30px;
+.loginBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  width: min(500px, 100%);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: var(--sp-5) var(--sp-4) var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-4);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--peach) 6%, transparent), transparent 61.8%),
+    color-mix(in srgb, var(--ink-800) 82%, transparent);
+  box-shadow: var(--shadow-2);
+  color: var(--text);
 }
 
 .loginTitle {
-    color: var(--orange-color);
-    font-size: 2rem;
-    font-weight: bold;
+  font-family: var(--font-display);
+  font-size: var(--fs-4);
+  font-weight: 600;
+  font-variation-settings: 'SOFT' 50;
+  letter-spacing: -0.025em;
+  line-height: var(--lh-tight);
+  color: var(--cream);
 }
 
-.loginForm {
-
+.loginForm,
+.loginForm form {
+  width: 100%;
+}
+.loginForm form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--sp-2);
 }
 
 .loginBody label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: var(--pink-color);
-    font-size: 1.2rem;
-    margin: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-.loginForm input {
-    background-color: var(--bg-color);
-    border: 1px solid var(--pink-color);
-    border-radius: 5px;
-    color: var(--font-color);
-    font-size: 1rem;
-    margin: 5px;
-    padding: 5px;
-    width: 200px;
+.loginBody input,
+.loginBody select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.7em 0.9em;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: color-mix(in srgb, var(--ink-950) 55%, transparent);
+  color: var(--text);
+  font: 400 1rem / 1.4 var(--font-body);
+  transition: border-color var(--dur-2), box-shadow var(--dur-2);
+}
+.loginBody input:focus,
+.loginBody select:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--orange) 25%, transparent);
 }
 
-.loginForm .submitButton {
-    background-color: var(--pink-color);
-    border: 1px solid var(--pink-color);
-    border-radius: 5px;
-    color: var(--font-color);
-    font-size: 1rem;
-    margin: 5px;
-    padding: 5px;
-    width: 100px;
+.loginBody .submitButton {
+  padding: 0.75em 1.3em;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--peach) 5%, transparent);
+  color: var(--text);
+  font: 600 0.9375rem / 1.2 var(--font-body);
+  cursor: pointer;
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    border-color var(--dur-2),
+    box-shadow var(--dur-3) var(--ease-out);
 }
-
-
-.loginForm .submitButton:hover {
-    background-color: var(--bg-color);
-    border: 1px solid var(--pink-color);
-    color: var(--pink-color);
-    cursor: pointer;
+.loginBody .submitButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--peach) 40%, transparent);
+}
+.loginBody .submitButton[type='submit'] {
+  border-color: transparent;
+  background: var(--gradient-warm);
+  color: var(--ink-950);
+}
+.loginBody .submitButton[type='submit']:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow);
+}
+.loginBody .submitButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.loginBody .submitButton:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
 }
 
 .loginError {
-    color: var(--pink-color);
-    font-size: 1rem;
-    
+  min-height: 1.5em;
+  color: #ff9eae;
+  font-size: 0.95rem;
 }

@@ -1,84 +1,88 @@
-.displayUsers{
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    
-    gap: 10px;
-    justify-content: center;
-    width: auto;
-    padding: 20px;
-}
-.user {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ccc;
-    transition: all 0.3s ease-in-out;
-    flex: 1 1 220px;
-    max-width: 320px;
+.displayUsers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--sp-3);
+  width: 100%;
 }
 
+.noUsers {
+  padding: var(--sp-4);
+  border: 1px dashed color-mix(in srgb, var(--peach) 24%, transparent);
+  border-radius: var(--r-3);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.user {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--peach) 5%, transparent), transparent 61.8%),
+    color-mix(in srgb, var(--ink-800) 82%, transparent);
+  box-shadow: var(--shadow-1);
+  transition:
+    transform var(--dur-3) var(--ease-out),
+    border-color var(--dur-2),
+    box-shadow var(--dur-3) var(--ease-out);
+}
 .user:hover {
-    background-color: #ccc;
-    color: var(--bg-color);
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--peach) 26%, transparent);
+  box-shadow: var(--shadow-2);
 }
 
 .userName {
-    display: flex;
-    font-weight: bold;
-    width: 100%;
-    border-bottom: 1px solid var(--pink-color);
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-}
-
-.user .info {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.user .subInfo {
-    font-size: 13px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.sameRow {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
+  margin-bottom: 4px;
+  font-family: var(--font-display);
+  font-size: var(--fs-1);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--cream);
 }
 
 .categoryTitle {
-    padding-top: 10px;
-    font-size: 15px;
-    font-weight: bold;
-    width: 100%;
-    border-bottom: 1px solid var(--orange-color);
+  margin-top: var(--sp-2);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+  color: var(--orange);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
+.user .subInfo {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font-size: 0.875rem;
+}
+.user .subInfo .text {
+  color: var(--text-muted);
+}
+.user .subInfo .value {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
 
 .linkButton {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 5px 10px;
-    background-color: var(--pink-color);
-    border: 1px solid var(--pink-color);
-    border-radius: 5px;
-    color: var(--font-color);
-    font: inherit;
-    text-decoration: none;
-    cursor: pointer;
+  align-self: flex-start;
+  margin-top: var(--sp-2);
+  padding: 0.55em 1.15em;
+  border: 1px solid color-mix(in srgb, #ff9eae 45%, transparent);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: #ff9eae;
+  font: 600 0.875rem / 1.2 var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur-2), border-color var(--dur-2);
 }
-
 .linkButton:hover {
-    background-color: var(--bg-color);
-    color: var(--pink-color);
+  border-color: #ff9eae;
+  background: color-mix(in srgb, #ff9eae 12%, transparent);
 }

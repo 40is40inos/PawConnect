@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMe, logout } from '../../api/auth';
+import { LayoutGroup, motion, useIsPresent } from 'motion/react';
 import { getPetOwners } from '../../api/users';
 import { getBookings, getKeeperProfile, getPets } from '../../api/market';
 import { errorMessage } from '../../api/client';
@@ -11,6 +11,7 @@ import { KeeperProfileForm } from '../../components/KeeperProfileForm';
 import { ProfileForm } from '../../components/ProfileForm';
 import { DisplayUsers } from '../../components/displayUsers/displayUsers';
 import { Landing } from '../landing/Landing';
+import { useSession } from '../../session';
 import '../../components/marketplace.css';
 
 const OWNER_TABS = [
@@ -28,14 +29,14 @@ const KEEPER_TABS = [
 
 export const MainPage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { me: user, setMe: setUser } = useSession();
+  const isPresent = useIsPresent();
   const [tab, setTab] = useState(null);
   const [pets, setPets] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [keeperProfile, setKeeperProfile] = useState(undefined); // undefined = not loaded yet
   const [owners, setOwners] = useState(null);
   const [error, setError] = useState(null);
-  const [visitor, setVisitor] = useState(false); // not logged in: show the landing page
 
   const isKeeper = user?.type === 'PETKEEPER';
   const fail = (err) => setError(errorMessage(err));
@@ -43,31 +44,39 @@ export const MainPage = () => {
   const loadBookings = useCallback(() => getBookings().then(setBookings).catch(fail), []);
   const loadPets = useCallback(() => getPets().then(setPets).catch(fail), []);
 
+  // Load the dashboard once we know who is logged in. Depends on the user's
+  // identity only, so saving "My details" doesn't reload everything.
+  const userName = user?.userName;
+  const role = user?.role;
+  const type = user?.type;
   useEffect(() => {
-    getMe()
-      .then(async (me) => {
-        if (!me) return setVisitor(true);
-        if (me.role === 'ADMIN') return navigate('/admin');
-        setUser(me);
-        if (me.type === 'PETKEEPER') {
-          const profile = await getKeeperProfile();
+    if (!userName) return;
+    if (role === 'ADMIN') {
+      navigate('/admin');
+      return;
+    }
+    if (type === 'PETKEEPER') {
+      getKeeperProfile()
+        .then((profile) => {
           setKeeperProfile(profile);
           setTab(profile ? 'bookings' : 'profile');
-        } else {
-          setTab('find');
-          loadPets();
-        }
-        loadBookings();
-      })
-      .catch(fail);
-  }, [navigate, loadBookings, loadPets]);
+        })
+        .catch(fail);
+    } else {
+      setTab('find');
+      loadPets();
+    }
+    loadBookings();
+  }, [userName, role, type, navigate, loadBookings, loadPets]);
 
   useEffect(() => {
     if (tab === 'owners' && owners === null) getPetOwners().then(setOwners).catch(fail);
   }, [tab, owners]);
 
-  if (visitor) return <Landing />;
-  if (!user) return error ? <p className="error">{error}</p> : null;
+  // While this page animates out after logging out, show nothing rather than
+  // flashing the landing page.
+  if (user === null) return isPresent ? <Landing /> : null;
+  if (!user || role === 'ADMIN') return null;
 
   const waiting = bookings.filter((b) => b.status === 'REQUESTED').length;
   const tabs = isKeeper ? KEEPER_TABS : OWNER_TABS;
@@ -79,29 +88,35 @@ export const MainPage = () => {
           <h1 className="dashboardTitle">Hi {user.firstName}</h1>
           <span className="cardMeta">{isKeeper ? 'Pet keeper' : 'Pet owner'} · {user.city}</span>
         </div>
-        <button className="btn btn-secondary" onClick={() => logout().finally(() => navigate('/login'))}>
-          Log out
-        </button>
       </header>
 
-      <nav className="tabs" role="tablist">
-        {tabs.map(([key, label]) => (
-          <button
-            key={key}
-            className="tab"
-            role="tab"
-            aria-selected={tab === key}
-            onClick={() => {
-              setError(null);
-              setTab(key);
-              if (key === 'bookings') loadBookings();
-            }}
-          >
-            {label}
-            {key === 'bookings' && waiting > 0 && <span className="count">{waiting}</span>}
-          </button>
-        ))}
-      </nav>
+      <LayoutGroup id="dashboardTabs">
+        <nav className="tabs" role="tablist">
+          {tabs.map(([key, label]) => (
+            <button
+              key={key}
+              className="tab"
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => {
+                setError(null);
+                setTab(key);
+                if (key === 'bookings') loadBookings();
+              }}
+            >
+              {tab === key && (
+                <motion.span
+                  layoutId="tabIndicator"
+                  className="tabIndicator"
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                />
+              )}
+              {label}
+              {key === 'bookings' && waiting > 0 && <span className="count">{waiting}</span>}
+            </button>
+          ))}
+        </nav>
+      </LayoutGroup>
 
       {error && <p className="error" role="alert">{error}</p>}
 
