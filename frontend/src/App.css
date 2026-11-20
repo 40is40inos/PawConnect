@@ -8,8 +8,13 @@
 }
 
 body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.4;
+}
+
+/* The landing page is full-bleed and handles its own spacing. */
+.App:has(> .landing) {
+  display: block;
+  padding: 0;
 }
 
 .App {
