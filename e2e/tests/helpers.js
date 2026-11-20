@@ -7,7 +7,7 @@ async function login(page, userName, password = PASSWORD) {
   await page.goto('/login');
   await page.getByLabel('Username').fill(userName);
   await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: 'Login' }).click();
+  await page.getByRole('button', { name: 'Log in' }).click();
 }
 
 async function logout(page) {

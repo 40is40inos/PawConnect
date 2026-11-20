@@ -18,7 +18,7 @@ test('a new owner books a keeper who accepts', async ({ page }) => {
   await page.getByLabel('City').fill('Heraklion');
   await page.getByLabel('Address').fill('Kalokairinou 10');
   await page.getByLabel('Phone number').fill('+306911111111');
-  await page.getByRole('button', { name: 'Register' }).click();
+  await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page.getByRole('heading', { name: 'Hi Dimitra' })).toBeVisible();
 
   // No pets yet, so booking asks for one first.
