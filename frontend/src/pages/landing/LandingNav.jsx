@@ -16,7 +16,7 @@ export function Logo() {
       <span className="logoMark">
         <PawIcon />
       </span>
-      PawConnect
+      <span className="logoWord">PawConnect</span>
     </span>
   );
 }

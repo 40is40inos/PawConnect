@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getMe } from '../../api/auth';
 import { getKeeper, getPets } from '../../api/market';
 import { errorMessage } from '../../api/client';
 import { Rating } from '../../components/KeeperSearch';
 import { BookingRequestForm } from '../../components/BookingRequestForm';
 import { SPECIES_LABELS, formatDate, formatPrice, stars } from '../../utils/format';
+import { useSession } from '../../session';
 import '../../components/marketplace.css';
 
 // Public keeper page with reviews. Logged-in owners can request a booking here.
@@ -13,24 +13,23 @@ export const KeeperPage = () => {
   const { userName } = useParams();
   const navigate = useNavigate();
   const [keeper, setKeeper] = useState(null);
-  const [viewer, setViewer] = useState(null);
+  const { me: viewer } = useSession();
   const [pets, setPets] = useState([]);
   const [error, setError] = useState(null);
   const [sent, setSent] = useState(false);
 
+  // Fetch once the session is known, so contact details show for members.
+  const sessionKnown = viewer !== undefined;
+  const isOwner = viewer?.type === 'PETOWNER';
   useEffect(() => {
-    getMe()
-      .then((me) => {
-        setViewer(me);
-        // Reload the keeper after the session is known, so contact details show for members.
-        return Promise.all([getKeeper(userName), me?.type === 'PETOWNER' ? getPets() : []]);
-      })
+    if (!sessionKnown) return;
+    Promise.all([getKeeper(userName), isOwner ? getPets() : []])
       .then(([k, p]) => {
         setKeeper(k);
         setPets(p);
       })
       .catch((err) => setError(errorMessage(err)));
-  }, [userName]);
+  }, [userName, sessionKnown, isOwner]);
 
   const back = viewer ? '/' : '/guest';
 

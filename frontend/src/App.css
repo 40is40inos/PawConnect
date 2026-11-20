@@ -1,28 +1,37 @@
+/* Older colour names, kept for the screens that still use them.
+   They point at the design tokens in styles/tokens.css. */
 :root {
-  --bg-color: #2D3047;
-  --bg-color-20: color-mix(in srgb, #2D3047 , white 10%);
-  --font-color: #FFDBB5;
-  --pink-color: #C04ABC;
-  --orange-color: #E0A458;
-  --green-color: #419D78;
+  --bg-color: var(--ink-800);
+  --bg-color-20: var(--ink-700);
+  --font-color: var(--peach);
+  --pink-color: var(--pink);
+  --orange-color: var(--orange);
+  --green-color: var(--green);
 }
 
-body {
-  line-height: 1.4;
+.App {
+  position: relative;
+  isolation: isolate;
+  color: var(--text);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  /* Room for the fixed nav: 89 + 34. */
+  padding: calc(var(--sp-6) + var(--sp-4)) var(--gutter) var(--sp-6);
+  box-sizing: border-box;
 }
 
 /* The landing page is full-bleed and handles its own spacing. */
-.App:has(> .landing) {
+.App--bare {
   display: block;
   padding: 0;
 }
 
-.App {
-  color: var(--font-color);
-  display: flex;
-  justify-content: center;
-  height: auto;
-  width: 100%;
-  padding: 48px 32px 80px;
-  box-sizing: border-box;
+@media (max-width: 600px) {
+  .App {
+    padding-top: calc(var(--sp-6) + var(--sp-1));
+  }
 }

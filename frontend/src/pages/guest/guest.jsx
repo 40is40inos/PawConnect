@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { KeeperSearch } from '../../components/KeeperSearch';
 import '../../components/marketplace.css';
 
@@ -9,22 +8,12 @@ const USEFUL_LINKS = [
 ];
 
 export const Guest = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="dashboard">
       <header className="dashboardHeader">
         <div>
-          <h1 className="dashboardTitle">PawConnect</h1>
+          <h1 className="dashboardTitle">Find a keeper</h1>
           <span className="cardMeta">Trusted pet keepers near you</span>
-        </div>
-        <div className="actions">
-          <button className="btn btn-secondary" onClick={() => navigate('/login')}>
-            Log in
-          </button>
-          <button className="btn" onClick={() => navigate('/register')}>
-            Sign up
-          </button>
         </div>
       </header>
       <KeeperSearch />

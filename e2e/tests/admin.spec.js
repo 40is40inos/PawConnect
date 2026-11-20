@@ -23,7 +23,7 @@ test('admin deletes a user', async ({ page, request }) => {
   expect(res.status()).toBe(201);
 
   await login(page, 'demo_admin');
-  await expect(page.getByRole('heading', { name: 'Admin Page' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Admin page' })).toBeVisible();
   await page.getByRole('button', { name: 'Show users' }).click();
 
   const card = page.locator('.user', { hasText: userName });
@@ -33,7 +33,7 @@ test('admin deletes a user', async ({ page, request }) => {
   await expect(page.locator('.user', { hasText: userName })).toHaveCount(0);
 
   // The deleted account can no longer log in.
-  await page.getByRole('button', { name: 'Logout' }).click();
+  await page.getByRole('button', { name: 'Log out' }).click();
   await login(page, userName);
   await expect(page.getByText('Wrong username or password')).toBeVisible();
 });

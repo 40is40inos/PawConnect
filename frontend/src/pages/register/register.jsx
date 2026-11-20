@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../../api/auth';
 import { errorMessage } from '../../api/client';
+import { useSession } from '../../session';
 
+import '../login/login.css';
 import './register.css';
 
 const FIELDS = [
@@ -22,6 +24,7 @@ const FIELDS = [
 
 export const Register = () => {
   const navigate = useNavigate();
+  const { setMe } = useSession();
   const [serverError, setServerError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,7 +35,10 @@ export const Register = () => {
     setServerError(null);
 
     register(data)
-      .then(() => navigate('/'))
+      .then((profile) => {
+        setMe(profile);
+        navigate('/');
+      })
       .catch((err) => setServerError(errorMessage(err)))
       .finally(() => setSubmitting(false));
   };

@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import { EASE_OUT, Reveal, SplitWords, goldenSpiralPath, usePointerParallax } from '../../motion/kit';
 import { ArrowIcon, CheckIcon, PawIcon, StarIcon } from './icons';
 import { photos } from './photos';
+import { hueFor, initials } from '../../utils/avatar';
 
 // The arch is 100 × 127.2 (1 : √φ); the spiral's eye sits on its golden point,
 // 61.8% across and 38.2% down.
@@ -26,8 +27,6 @@ const bob = (distance, duration, delay = 0) => ({
   transition: { duration, delay, repeat: Infinity, ease: 'easeInOut' },
 });
 
-export const initials = (k) => `${k.firstName[0] || ''}${k.lastName?.[0] || ''}`;
-export const hueFor = (name) => [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 17);
 
 export function Hero({ stats, keepers }) {
   const ref = useRef(null);
@@ -175,7 +174,7 @@ export function Hero({ stats, keepers }) {
 
         <Depth px={px} py={py} depth={21} className="floatSlot floatBadge">
           <motion.div
-            className="badge"
+            className="heroBadge"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, ease: EASE_OUT, delay: 1.3 }}
