@@ -6,9 +6,9 @@
 
 A marketplace where pet owners find pet keepers (sitters) and book stays for their pets. Keepers set their price and the animals they look after. Owners search, send booking requests and review keepers after a stay.
 
-It started as a two-person project with Kiriaki Dimopoulou for the Internet-Centric Computing course (HY359) at the University of Crete. I later rebuilt the backend security and added the marketplace features (pets, keeper profiles, search, bookings and reviews), automated tests, Docker and the deployment.
+It started as a two-person project with Kiriaki Dimopoulou for the Internet-Centric Computing course (HY359) at the University of Crete. I later rebuilt the backend security and added the marketplace features (pets, keeper profiles, search, bookings and reviews), automated tests, Docker and the deployment, then redesigned the interface around the golden ratio, with motion throughout.
 
-![Owner searching for a keeper](docs/screenshots/find-a-keeper.png)
+![PawConnect landing page](docs/screenshots/landing.jpg)
 
 ## Features
 
@@ -27,9 +27,50 @@ It started as a two-person project with Kiriaki Dimopoulou for the Internet-Cent
 - Contact details stay private until it makes sense to share them. Guests see none. Logged-in users see a keeper's email and phone. The owner and the keeper see each other's details only after a booking is accepted.
 - Admins can list and delete users. Deleting a user removes their pets, bookings and reviews.
 
-| Owner's bookings | Keeper's requests |
+## Screenshots
+
+| Searching for a keeper | A keeper's profile, with dates picked |
 |---|---|
-| ![Owner bookings](docs/screenshots/owner-bookings.png) | ![Keeper requests](docs/screenshots/keeper-requests.png) |
+| ![Keeper search with sorting and a grid/list toggle](docs/screenshots/find-a-keeper.jpg) | ![Keeper profile with rating ring and booking calendar](docs/screenshots/keeper-page.jpg) |
+| **Owner's bookings** | **Keeper's requests** |
+| ![Owner dashboard with stat tiles and bookings](docs/screenshots/owner-bookings.jpg) | ![Keeper dashboard with requests waiting](docs/screenshots/keeper-requests.jpg) |
+| **Log in** | **Owner's pets** |
+| ![Login page with a golden-ratio photo split](docs/screenshots/login.jpg) | ![Owner's pets](docs/screenshots/my-pets.jpg) |
+
+<p>
+  <img src="docs/screenshots/phone-landing.jpg" width="260" alt="Landing page on a phone">
+  &nbsp;
+  <img src="docs/screenshots/phone-keeper-page.jpg" width="260" alt="Keeper profile on a phone">
+</p>
+
+The screenshots are taken by a script, so they can be retaken after UI changes: build the frontend, then run `npm run screenshots` in `e2e/`.
+
+## Design and motion
+
+The interface was redesigned to feel warm and alive: dark navy with peach, orange and pink, a serif display face, depth from glass panels and soft shadows, and motion that explains what just happened. The [live demo](https://pawconnect-l8w5.onrender.com) shows it best.
+
+**Built on the golden ratio (φ ≈ 1.618).** All sizes come from CSS custom properties in [`styles/tokens.css`](frontend/src/styles/tokens.css):
+- Font sizes are steps of √φ from 16px, so every second step is ×φ (16, 20, 26, 33, 42, 68, 110px).
+- Spacing and corner radii follow the Fibonacci sequence (8, 13, 21, 34, 55, 89, 144), whose neighbours approach φ.
+- Two-column layouts split 61.8% / 38.2% (`1.618fr 1fr`): the login and sign-up pages, and the keeper profile.
+- The landing hero's arch is 1 : √φ, with a golden spiral drawn from its golden point. A faint spiral also turns slowly behind every app page.
+- Timings borrow it too: count-ups last φ seconds and the keeper carousel advances every ~φ³ seconds.
+
+**Motion, page by page** (with [Motion](https://motion.dev) for React):
+- **Landing page:** the headline rises word by word, and the photo, cut-out cat and badges move at different depths with the cursor. Sections parallax on scroll, and a statement lights up word by word as you scroll through it. "How it works" cards stack and sink, and keepers sit in a 3D carousel you can drag. Text bands drift sideways and speed up and lean with scroll speed. A puppy rises into the final call to action. Scrolling is smoothed with Lenis.
+- **Across the app:** a floating nav with a highlight that slides to the current page and turns frosted once you scroll. Pages fade and lift between routes, and warm glows drift behind them.
+- **Search:** cards tilt in 3D towards the cursor with a light glare. Results stagger in and rearrange smoothly when you sort or filter, the sort control's pill slides between options, and skeleton cards show while loading.
+- **Keeper profile:** the cover photo wipes open and parallaxes, and the rating draws itself as a ring while the number counts up. In the calendar, months slide and the start and end markers glide to the days you pick. The booking panel stays in view as you scroll.
+- **Login and sign-up:** labels float up as you type, the photo follows the cursor, the password has a strength meter, and the form shakes on a wrong password.
+- **Dashboard:** stat tiles count to their values and a pulsing dot marks requests that need an answer. Accept or Decline shows a spinner, then a tick that draws itself and a coloured flash. The card then flies into its new section ("Waiting" → "Upcoming" or "Past").
+
+**Smaller tricks:**
+- **Reduced motion:** with "reduce motion" turned on in the operating system, animations end in their final state, CSS animations stop, and the shake, smooth scrolling and drifting bands are switched off.
+- **Touch screens:** 3D tilt and cursor parallax run only on devices with a mouse or trackpad, so phones don't get stuck mid-tilt.
+- **Shared elements:** the nav highlight, tab indicator, sort pill, calendar markers and booking cards each use a shared `layoutId`. Motion then animates one element between two places instead of fading two separate ones.
+- **Leaving pages:** pages that redirect (login, sign-up, the dashboard after logging out) check `useIsPresent`, so a page on its way out doesn't redirect or flash the landing page mid-animation.
+- **Colour:** every tint is derived from the palette with `color-mix()`. Glass panels use `backdrop-filter`. When a booking form opens, CSS `:has()` lets that card span the full grid row.
+- **Self-hosted assets:** fonts and photos are served from the app itself, because the server's Content Security Policy only allows same-origin images. Fraunces and Inter are variable fonts from Fontsource. The photos are WebP, and two have their backgrounds removed so the animals can sit in front of other elements.
 
 ## Business rules
 
@@ -49,6 +90,7 @@ These rules are enforced on the server and covered by the tests:
 | Part | Technology |
 |---|---|
 | Frontend | React 18, React Router 6, Axios |
+| Design and motion | Motion (motion/react) for animation, Lenis for smooth scrolling, Fraunces and Inter variable fonts (Fontsource), golden-ratio design tokens in plain CSS |
 | Backend | Node.js, Express 5, Sequelize ORM |
 | Database | MySQL or Postgres, with versioned migrations (Umzug); SQLite for quick runs |
 | Security | bcrypt, JWT in an httpOnly cookie, Zod validation, Helmet, express-rate-limit |
@@ -153,6 +195,7 @@ TEST_DATABASE_URL=postgres://user:pass@localhost:5432/pawtest npm test   # same 
 
 cd frontend && npm run build            # the browser tests use the production build
 cd e2e && npm install && npx playwright install chromium && npm test     # 14 browser tests
+npm run screenshots                     # in e2e/: retake the README screenshots
 ```
 
 **API tests (Jest + Supertest).** They cover:
@@ -202,10 +245,15 @@ backend/
 └── tests/              # Jest + Supertest
 frontend/src/
 ├── api/                # Axios client and API calls
-├── components/         # Keeper search, booking form, pets, bookings, profiles
-├── pages/              # login, register, dashboard, guest, keeper page, admin
-└── utils/              # Labels, date and price formatting
-e2e/                    # Playwright browser tests
+├── components/         # Keeper search, calendar, booking form, pets, bookings
+│   ├── shell/          # Floating nav, page transitions, animated backdrop
+│   └── auth/           # Login/sign-up layout and floating-label fields
+├── pages/              # landing, login, register, dashboard, guest, keeper page, admin
+├── motion/kit.jsx      # Shared motion pieces: reveal, tilt, count-up, marquee, parallax
+├── styles/             # Golden-ratio design tokens and shared UI styles
+├── session.jsx         # Logged-in user, fetched once and shared by every page
+└── utils/              # Labels, date and price formatting, avatars
+e2e/                    # Playwright browser tests and the screenshot script
 Dockerfile              # Multi-stage build: React app + API in one image
 docker-compose.yml      # App + MySQL with demo data
 render.yaml             # Render deployment
